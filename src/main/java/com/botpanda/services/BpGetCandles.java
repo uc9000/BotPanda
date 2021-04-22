@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.Data;
 
+//GET MANY CANDLES FROM REST API
 @Service
 @Data
 public class BpGetCandles {
@@ -20,7 +21,7 @@ public class BpGetCandles {
     private OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
     private int maxAmount = 15;
 
-    public void getAllCandles(){
+    public String getAllCandles(){
         String instrumentCodes = "DOGE_EUR?";
         String unit = "MINUTES";
         int period = 5;
@@ -33,6 +34,7 @@ public class BpGetCandles {
         System.out.println(sURL);
         //System.out.println(fromDate.toString() + "     " + date.toString());
         //int responseCode;
+        StringBuffer response = new StringBuffer();
         try{
             URL url = new URL(sURL);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -40,15 +42,16 @@ public class BpGetCandles {
             //responseCode = con.getResponseCode();
             BufferedReader in = new BufferedReader(
                 new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
+            String inputLine;            
             while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
             }
             in.close();
             System.out.println(response.toString());
+            return response.toString();
         }catch (Exception e){
             e.printStackTrace();
         }
+        return new String("GET CANDLES FAILED");
     }
 }
