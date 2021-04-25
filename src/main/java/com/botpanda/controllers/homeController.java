@@ -5,8 +5,7 @@ import java.net.URISyntaxException;
 
 import javax.websocket.DeploymentException;
 
-import com.botpanda.services.BpGetCandles;
-import com.botpanda.services.BpWebsocket;
+import com.botpanda.services.BpConnectivity;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,14 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class homeController {
 
     @Autowired
-    BpGetCandles candles;
-    @Autowired
-    BpWebsocket ws;
+    BpConnectivity bpConnecion;
 
     @GetMapping("")
     public String home() throws DeploymentException, IOException, URISyntaxException{     
-        candles.getAllCandles();
-        ws.connect();
+        bpConnecion.getAllCandles();
+        bpConnecion.connect();
         return "index.html";
     }
 }
