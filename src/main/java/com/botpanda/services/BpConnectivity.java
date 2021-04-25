@@ -1,6 +1,8 @@
 package com.botpanda.services;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -11,11 +13,13 @@ import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.net.http.WebSocket.Listener;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.CompletionStage;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.EqualsAndHashCode;
@@ -25,6 +29,8 @@ import lombok.Getter;
 @Service
 @EqualsAndHashCode
 public class BpConnectivity {
+    @Autowired
+    private BpJSONtemplates jsonTemplate;
     //REST VARS
     private static final String REST_URL = "https://api.exchange.bitpanda.com/public/v1/candlesticks/";
     private static final String WS_URL = "wss://streams.exchange.bitpanda.com";
@@ -38,7 +44,9 @@ public class BpConnectivity {
     Listener wsListener = new Listener(){
         @Override
         public void onOpen(WebSocket webSocket){
-            System.out.println("\nOPENED!");
+            webSocket.request(1);
+            System.out.println("\nOPENED with subprotocol: " + webSocket.getSubprotocol());
+            //webSocket.request(1);    
         }
 
         @Override
@@ -49,7 +57,8 @@ public class BpConnectivity {
 
         @Override
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
-            System.out.println("message: " + message);
+            webSocket.request(1);
+            System.out.println("received message: " + message.toString());
             return null;
         }
     };
@@ -89,5 +98,15 @@ public class BpConnectivity {
     //WEBSOCKETS METHODS
     public void connect() throws URISyntaxException{
         ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(60)).buildAsync(new URI(WS_URL), wsListener).join();
+    }
+
+    public void authenticate(String key) throws IOException{
+        if(key.length() < 1){
+            ClassLoader classLoader = getClass().getClassLoader();
+            File file = new File(classLoader.getResource("API.private").getFile());
+            key = new String(Files.readAllBytes(file.toPath()));
+            //System.out.println("key: " + key);
+        }
+        ws.sendText(jsonTemplate.authentication(key), true);
     }
 }

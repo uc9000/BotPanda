@@ -19,8 +19,21 @@ public class homeController {
 
     @GetMapping("")
     public String home() throws DeploymentException, IOException, URISyntaxException{     
-        bpConnecion.getAllCandles();
+        //bpConnecion.getAllCandles();
         bpConnecion.connect();
+        return "index.html";
+    }
+
+    @GetMapping("/auth")
+    public String auth(){
+        try {
+            Thread.sleep(1000);
+            bpConnecion.authenticate("");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }  catch (InterruptedException e ) {
+            e.printStackTrace();
+        }
         return "index.html";
     }
 }

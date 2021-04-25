@@ -1,4 +1,4 @@
-package com.botpanda.models;
+package com.botpanda.entities;
 
 import org.springframework.stereotype.Component;
 
