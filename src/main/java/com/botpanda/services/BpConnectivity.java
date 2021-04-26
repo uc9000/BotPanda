@@ -58,7 +58,8 @@ public class BpConnectivity {
         @Override
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
-            System.out.println("received message: " + message.toString());
+            System.out.println("received message: ");
+            jsonTemplate.log(message.toString());
             return null;
         }
     };
@@ -108,5 +109,9 @@ public class BpConnectivity {
             //System.out.println("key: " + key);
         }
         ws.sendText(jsonTemplate.authentication(key), true);
+    }
+
+    public void subscribe(String fromCurrency, String toCurrency, int period, String unit){
+        ws.sendText(jsonTemplate.subscribtionToCandles(fromCurrency, toCurrency, period, unit), true);
     }
 }

@@ -27,13 +27,17 @@ public class homeController {
     @GetMapping("/auth")
     public String auth(){
         try {
-            Thread.sleep(1000);
             bpConnecion.authenticate("");
         } catch (IOException e) {
             e.printStackTrace();
-        }  catch (InterruptedException e ) {
-            e.printStackTrace();
         }
+        return "index.html";
+    }
+
+    //TODO
+    @GetMapping("/subscribe" )
+    public String subscribe(){
+        bpConnecion.subscribe("DOGE", "EUR", 1, "MINUTES");
         return "index.html";
     }
 }
