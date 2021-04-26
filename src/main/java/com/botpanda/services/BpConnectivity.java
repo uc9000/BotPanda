@@ -22,36 +22,46 @@ import java.util.concurrent.CompletionStage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 //GET CANDLES FROM REST API AND WEBSOCKETS
 @Service
-@EqualsAndHashCode
 public class BpConnectivity {
+    @Getter
+    private boolean connected = false;
+    @Getter
+    private boolean authenticated = false;
+
+    @Autowired
+    private BotLogic botLogic;
+
+    @Autowired
+    private BotSettings settings;
+
     @Autowired
     private BpJSONtemplates jsonTemplate;
+
     //REST VARS
     private static final String REST_URL = "https://api.exchange.bitpanda.com/public/v1/candlesticks/";
     private static final String WS_URL = "wss://streams.exchange.bitpanda.com";
     private String restUrl;
     private OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
-    private int maxAmount = 15;
 
+    
     //WEBSOCKET VARS
-    @Getter
-    WebSocket ws;
+    private WebSocket ws;
     Listener wsListener = new Listener(){
         @Override
         public void onOpen(WebSocket webSocket){
             webSocket.request(1);
             System.out.println("\nOPENED with subprotocol: " + webSocket.getSubprotocol());
-            //webSocket.request(1);    
         }
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason){
             System.out.println("CLOSED \nstatus code: " + statusCode + "\n reason: " + reason);
+            connected = false;
+            authenticated = false;
             return null;
         }
 
@@ -59,21 +69,34 @@ public class BpConnectivity {
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
             System.out.println("received message: ");
-            jsonTemplate.log(message.toString());
+            String type = jsonTemplate.getJSONtype(message.toString());
+            if(!type.equals("HEARTBEAT")){ // don't print heartbeats
+                jsonTemplate.log(message.toString());
+                if(authenticated){
+
+                }
+            }
+            if(type.equals("AUTHENTICATED")){
+                authenticated = true;
+            }
+            if(!authenticated){
+                try {
+                    authenticate("");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             return null;
         }
     };
-    //private
 
     //REST API METHODS
     public String getAllCandles(){
-        String instrumentCodes = "DOGE_EUR?";
-        String unit = "MINUTES";
-        int period = 5;
-        OffsetDateTime fromDate = date.minusMinutes((maxAmount + 1) * period);
+        String instrumentCodes = new String(settings.getFromCurrency() + "_" + settings.getToCurrency() + "?");
+        OffsetDateTime fromDate = date.minusMinutes((settings.getMaxCandles() + 1) * settings.getPeriod());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
         String params = new String(instrumentCodes 
-        + "unit=" + unit + "&period=" + period 
+        + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()
         + "&from=" + fromDateStr + "&to=" + URLEncoder.encode(date.toString(), StandardCharsets.UTF_8));
         this.restUrl = new String(REST_URL + params);
         System.out.println(restUrl);
@@ -97,8 +120,14 @@ public class BpConnectivity {
         return new String("GET CANDLES FAILED");
     }
     //WEBSOCKETS METHODS
-    public void connect() throws URISyntaxException{
-        ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(60)).buildAsync(new URI(WS_URL), wsListener).join();
+    public void connect(){
+        try {
+            ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(20)).buildAsync(new URI(WS_URL), wsListener).join();
+            connected = true;
+        } catch (URISyntaxException e) {
+            connected = false;
+            e.printStackTrace();
+        }
     }
 
     public void authenticate(String key) throws IOException{
@@ -109,9 +138,17 @@ public class BpConnectivity {
             //System.out.println("key: " + key);
         }
         ws.sendText(jsonTemplate.authentication(key), true);
+        ws.request(1);
+        //authenticated = true;
     }
 
-    public void subscribe(String fromCurrency, String toCurrency, int period, String unit){
-        ws.sendText(jsonTemplate.subscribtionToCandles(fromCurrency, toCurrency, period, unit), true);
+    public void subscribe(){
+        if(!connected || !authenticated){
+            System.out.println("Can't subscribe, not connected/authenticated yet");
+            return;
+        }
+        ws.sendText(jsonTemplate.subscribtionToCandles(settings.getFromCurrency(), settings.getToCurrency(), settings.getPeriod(), settings.getUnit()), true);
+        ws.request(1);
+        botLogic.candles = jsonTemplate.parseCandleList(getAllCandles());
     }
 }

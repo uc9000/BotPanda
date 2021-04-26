@@ -1,18 +1,24 @@
 package com.botpanda.services;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import com.botpanda.entities.BpCandlestick;
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Service
+@Data
 public class BpJSONtemplates {
-    @Setter
-    @Getter
     private boolean print = true;
     private String output;
+    private Gson gson = new Gson();
 
     public void log(String output){
         output = new JSONObject(output).toString(4);
@@ -45,5 +51,23 @@ public class BpJSONtemplates {
         output = jo.toString();
         log(output);
         return output;
+    }
+
+    public BpCandlestick parseCandle(String candleJSON){
+        return gson.fromJson(candleJSON, BpCandlestick.class);
+    }
+
+    public List<BpCandlestick> parseCandleList(String candleListJSON){
+        JSONArray ja = new JSONArray(candleListJSON);
+        List<BpCandlestick> list = new ArrayList<BpCandlestick>();
+        for(int i = 0; i < ja.length(); i++){
+            list.add(parseCandle(ja.get(i).toString()));
+        }
+        Collections.reverse(list);
+        return list;
+    }
+
+    public String getJSONtype(String message){
+        return new JSONObject(message).get("type").toString();
     }
 }

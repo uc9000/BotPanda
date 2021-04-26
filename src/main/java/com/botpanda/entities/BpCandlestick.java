@@ -6,9 +6,10 @@ import lombok.Data;
 
 @SuppressWarnings("unused")
 @Data
-@Component
 public class BpCandlestick {
+    private String instrument_code;
     private double high;
     private double low;
+    private double open;
     private double close;
 }

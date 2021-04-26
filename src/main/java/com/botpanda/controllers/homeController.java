@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 
 import javax.websocket.DeploymentException;
 
+import com.botpanda.services.BotSettings;
 import com.botpanda.services.BpConnectivity;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,14 @@ public class homeController {
 
     @Autowired
     BpConnectivity bpConnecion;
+    @Autowired
+    BotSettings settings = new BotSettings();
 
     @GetMapping("")
     public String home() throws DeploymentException, IOException, URISyntaxException{     
         //bpConnecion.getAllCandles();
         bpConnecion.connect();
+        System.out.println(settings.toString());
         return "index.html";
     }
 
@@ -34,10 +38,10 @@ public class homeController {
         return "index.html";
     }
 
-    //TODO
+    
     @GetMapping("/subscribe" )
-    public String subscribe(){
-        bpConnecion.subscribe("DOGE", "EUR", 1, "MINUTES");
+    public String subscribe(){        
+        bpConnecion.subscribe();
         return "index.html";
     }
 }
