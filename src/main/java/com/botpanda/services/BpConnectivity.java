@@ -82,11 +82,10 @@ public class BpConnectivity {
         @Override
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
-            log.debug("received message: ");
             //log.info(message.toString());
             String type = jsonTemplate.getJSONtype(message.toString());
             if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
-                log.info(message.toString());
+                log.info("received message: " + message.toString());
             }
             if(type.equals("AUTHENTICATED")){
                 authenticated = true;
@@ -100,7 +99,7 @@ public class BpConnectivity {
             //         e.printStackTrace();
             //     }
             // }
-            if(type.equals("CANDLESTICK")){
+            if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
                 if(botLogic.shouldBuy()){
                     boughtPrice = botLogic.getLastCandle().getClose();

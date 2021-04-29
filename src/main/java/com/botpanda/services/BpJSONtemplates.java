@@ -21,16 +21,9 @@ public class BpJSONtemplates {
     private String output;
     private Gson gson = new Gson();
 
-    public void log(String output){
-        output = new JSONObject(output).toString(4);
-        if(print){
-            log.info(output);
-        }
-    }
-
     public String authentication(String key){
         output = new String("{\"type\": \"AUTHENTICATE\", \"api_token\": \"" + key + "\"}");
-        log(output);
+        log.debug(output);
         return output;
     }
 
@@ -50,7 +43,7 @@ public class BpJSONtemplates {
             ))
         );
         output = jo.toString();
-        log(output);
+        log.debug(output);
         return output;
     }
 

@@ -66,7 +66,7 @@ public class BotLogic {
             else{
                 up += change;
             }
-            log.debug("close : " + close + " ; prevClose: " + prevClose);
+            log.trace("close : " + close + " ; prevClose: " + prevClose);
             prevClose = close;
             i++;
         }
