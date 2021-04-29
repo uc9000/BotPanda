@@ -1,14 +1,16 @@
 package com.botpanda.services;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import com.botpanda.BotpandaApplication;
 import com.botpanda.entities.BpCandlestick;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import lombok.Data;
@@ -16,6 +18,8 @@ import lombok.Data;
 @Service
 @Data
 public class BpJSONtemplates {
+
+    private Logger log = LoggerFactory.getLogger(BotpandaApplication.class);
     private boolean print = true;
     private String output;
     private Gson gson = new Gson();
@@ -23,7 +27,7 @@ public class BpJSONtemplates {
     public void log(String output){
         output = new JSONObject(output).toString(4);
         if(print){
-            System.out.println(output);
+            log.info(output);
         }
     }
 
@@ -54,6 +58,7 @@ public class BpJSONtemplates {
     }
 
     public BpCandlestick parseCandle(String candleJSON){
+        log.trace("Parsed:\n" + candleJSON);
         return gson.fromJson(candleJSON, BpCandlestick.class);
     }
 
@@ -63,7 +68,7 @@ public class BpJSONtemplates {
         for(int i = 0; i < ja.length(); i++){
             list.add(parseCandle(ja.get(i).toString()));
         }
-        Collections.reverse(list);
+        log.trace("Parsed list: " + list);
         return list;
     }
 

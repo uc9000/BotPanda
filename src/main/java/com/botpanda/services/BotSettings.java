@@ -1,11 +1,11 @@
 package com.botpanda.services;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import lombok.Getter;
 import lombok.Setter;
 
-@Service
+@Component
 public class BotSettings {
     @Setter
     @Getter
@@ -14,6 +14,7 @@ public class BotSettings {
     @Getter
     private int period, maxCandles;
     @Getter
+    @Setter
     private boolean started = false;
 
     public BotSettings(){
