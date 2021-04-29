@@ -3,23 +3,20 @@ package com.botpanda.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.botpanda.BotpandaApplication;
 import com.botpanda.entities.BpCandlestick;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Data
+@Slf4j
 public class BpJSONtemplates {
-
-    private Logger log = LoggerFactory.getLogger(BotpandaApplication.class);
     private boolean print = true;
     private String output;
     private Gson gson = new Gson();

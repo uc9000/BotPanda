@@ -19,25 +19,24 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.CompletionStage;
 
-import com.botpanda.BotpandaApplication;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 //GET CANDLES FROM REST API AND WEBSOCKETS
 @Service
+@Slf4j
 public class BpConnectivity {
-    Logger log = LoggerFactory.getLogger(BotpandaApplication.class);
     @Getter
     private boolean connected = false;
     @Getter
     private boolean authenticated = false;    
     private BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
+    @Getter
+    private double boughtPrice = 1, soldPrice = 1;
 
     @Autowired
     private BpJSONtemplates jsonTemplate;
@@ -92,6 +91,7 @@ public class BpConnectivity {
             if(type.equals("AUTHENTICATED")){
                 authenticated = true;
             }
+            //Not necessery just for candlestick subscription
             //Later change that to api key given from gui
             // if(!authenticated){
             //     try {
@@ -103,13 +103,17 @@ public class BpConnectivity {
             if(type.equals("CANDLESTICK")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
                 if(botLogic.shouldBuy()){
-                    log.info("BUY at price: " + botLogic.getLastCandle().getClose());
+                    boughtPrice = botLogic.getLastCandle().getClose();
+                    log.info("BUYING at price: " + boughtPrice);
+                    botLogic.setBought(true);
                 }
                 else if(botLogic.shouldSell()){
-                    log.info("SELL at price: " + botLogic.getLastCandle().getClose());
+                    soldPrice = botLogic.getLastCandle().getClose();
+                    log.info("SELLIN at price: " + soldPrice);
+                    botLogic.setBought(false);
                 }
                 else if (botLogic.isBought()){
-                    log.info("HODL");
+                    log.info("HOLD. Current gain [%]: " + (soldPrice - boughtPrice) * 100 / boughtPrice);
                 }
                 else{
                     log.info("WAIT WITH BUYING");
@@ -122,7 +126,7 @@ public class BpConnectivity {
     //REST API METHODS
     public String getAllCandles(){
         String instrumentCodes = new String(settings.getFromCurrency() + "_" + settings.getToCurrency() + "?");
-        OffsetDateTime fromDate = date.minusMinutes((settings.getMaxCandles()*2) * settings.getPeriod());
+        OffsetDateTime fromDate = date.minusMinutes(settings.getMaxCandles() * 4 * settings.getPeriod());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
         String params = new String(instrumentCodes 
         + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()

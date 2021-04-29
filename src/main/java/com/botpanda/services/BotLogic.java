@@ -3,21 +3,20 @@ package com.botpanda.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.botpanda.BotpandaApplication;
 import com.botpanda.entities.BpCandlestick;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 // @Component
 // @Scope(value = "prototype")
+@Slf4j
 public class BotLogic {
-    private Logger log = LoggerFactory.getLogger(BotpandaApplication.class);
     @Setter @Getter
     private double minRsi, maxRsi, safetyFactor;
+    @Getter
+    private double lastRs, lastAvgLoss, lastAvgGain;
     @Setter @Getter
     private boolean bought = false;
     @Getter
@@ -60,15 +59,21 @@ public class BotLogic {
                 continue;
             }
             double close = candle.getClose();
-            if (close - prevClose < 0){
-                down -= close - prevClose;
+            double change = close - prevClose;
+            if (change < 0){
+                down -= change;
             }
             else{
-                up += close - prevClose;
+                up += change;
             }
+            log.debug("close : " + close + " ; prevClose: " + prevClose);
+            prevClose = close;
             i++;
         }
-        return up/down;
+        lastAvgGain = up/(i - 1);
+        lastAvgLoss = down/(i - 1);
+        this.lastRs = lastAvgGain/lastAvgLoss;
+        return this.lastRs;
     }
 
     public double RSI(){
@@ -113,11 +118,13 @@ public class BotLogic {
         //log.info("Adding candle:\n" + candle.toString());
         this.candleList.add(candle);
         log.debug("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());
-        while(candleList.size() > settings.getMaxCandles()){
+        while(candleList.size() > settings.getMaxCandles() + 1){
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
         }
-        RSI();
+        if(candleList.size() >= 4){
+            RSI();
+        }
     }
 
     public void setCandleList(List <BpCandlestick> _candleList){
@@ -133,5 +140,13 @@ public class BotLogic {
             return new BpCandlestick();
         }
         return candleList.get(candleList.size()-1);
+    }
+
+    public double getLastRsi(){
+        if (rsiList.size() < 1){
+            log.debug("List is empty!");
+            return 50;
+        }
+        return rsiList.get(rsiList.size()-1);
     }
 }

@@ -12,4 +12,16 @@ public class BpCandlestick {
     private double low;
     private double open;
     private double close;
+
+    public BpCandlestick(){
+        close = 1;
+        low = 1;
+        high = 1;
+        open = 1;
+        instrument_code = new String();
+    }
+
+    public BpCandlestick(double close){
+        this.close = close;
+    }
 }
