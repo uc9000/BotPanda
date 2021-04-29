@@ -49,6 +49,7 @@ public class BpConnectivity {
 
     //CONSTRUCTORS:
     public BpConnectivity(){
+        settings = new BotSettings();
         botLogic.setSettings(settings);
     }
 
@@ -66,6 +67,7 @@ public class BpConnectivity {
         @Override
         public void onOpen(WebSocket webSocket){
             connected = true;
+            authenticated = false;
             webSocket.request(1);
             log.info("\nOPENED with subprotocol: " + webSocket.getSubprotocol());
         }
@@ -81,9 +83,9 @@ public class BpConnectivity {
         @Override
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
-            log.info("received message: ");
+            log.debug("received message: ");
+            //log.info(message.toString());
             String type = jsonTemplate.getJSONtype(message.toString());
-            log.info(message.toString());
             if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
                 log.info(message.toString());
             }
@@ -91,15 +93,27 @@ public class BpConnectivity {
                 authenticated = true;
             }
             //Later change that to api key given from gui
-            if(!authenticated){
-                try {
-                    authenticate("");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-            if(type.equals("CANDLESTICK_SNAPSHOT")){
+            // if(!authenticated){
+            //     try {
+            //         authenticate("");
+            //     } catch (IOException e) {
+            //         e.printStackTrace();
+            //     }
+            // }
+            if(type.equals("CANDLESTICK")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
+                if(botLogic.shouldBuy()){
+                    log.info("BUY at price: " + botLogic.getLastCandle().getClose());
+                }
+                else if(botLogic.shouldSell()){
+                    log.info("SELL at price: " + botLogic.getLastCandle().getClose());
+                }
+                else if (botLogic.isBought()){
+                    log.info("HODL");
+                }
+                else{
+                    log.info("WAIT WITH BUYING");
+                }
             }
             return null;
         }
@@ -108,7 +122,7 @@ public class BpConnectivity {
     //REST API METHODS
     public String getAllCandles(){
         String instrumentCodes = new String(settings.getFromCurrency() + "_" + settings.getToCurrency() + "?");
-        OffsetDateTime fromDate = date.minusMinutes((settings.getMaxCandles() + 1) * settings.getPeriod());
+        OffsetDateTime fromDate = date.minusMinutes((settings.getMaxCandles()*2) * settings.getPeriod());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
         String params = new String(instrumentCodes 
         + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()
@@ -155,8 +169,8 @@ public class BpConnectivity {
     }
 
     public void subscribe(){
-        if(!connected || !authenticated){
-            System.out.println("Can't subscribe, not connected/authenticated yet");
+        if(!connected){
+            System.out.println("Can't subscribe, not connected yet");
             return;
         }
         ws.sendText(jsonTemplate.subscribtionToCandles(settings.getFromCurrency(), settings.getToCurrency(), settings.getPeriod(), settings.getUnit()), true);

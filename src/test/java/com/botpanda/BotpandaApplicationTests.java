@@ -17,7 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class BotpandaApplicationTests {
-	BpConnectivity con = new BpConnectivity();
+	@Autowired
+	BpConnectivity con;
 	BotLogic bl = new BotLogic();
 	@Autowired
 	BpJSONtemplates js;

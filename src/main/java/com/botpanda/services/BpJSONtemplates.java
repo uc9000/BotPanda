@@ -73,6 +73,8 @@ public class BpJSONtemplates {
     }
 
     public String getJSONtype(String message){
-        return new JSONObject(message).get("type").toString();
+        String type = new JSONObject(message).get("type").toString();
+        log.debug("processed TYPE = " + type);
+        return type;
     }
 }

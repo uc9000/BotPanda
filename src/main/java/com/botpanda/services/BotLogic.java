@@ -72,7 +72,7 @@ public class BotLogic {
     }
 
     public double RSI(){
-        if (candleList.size() < settings.getMaxCandles() - 1){
+        if (candleList.size() < safetyFactor){
             return 50;
         }
         double result = 100 - (100 / (1 + RS()));
@@ -112,9 +112,9 @@ public class BotLogic {
     public void addCandle(BpCandlestick candle){
         //log.info("Adding candle:\n" + candle.toString());
         this.candleList.add(candle);
-        log.info("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());
+        log.debug("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());
         while(candleList.size() > settings.getMaxCandles()){
-            log.info("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
+            log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
         }
         RSI();
@@ -124,6 +124,14 @@ public class BotLogic {
         for(int i = 0; i < _candleList.size() ; i++){
             this.addCandle(_candleList.get(i));
         }
-        log.info("Set list:\n" + candleList.toString());
+        log.debug("Set list:\n" + candleList.toString());
+    }
+
+    public BpCandlestick getLastCandle(){
+        if (candleList.size() < 1){
+            log.debug("List is empty!");
+            return new BpCandlestick();
+        }
+        return candleList.get(candleList.size()-1);
     }
 }
