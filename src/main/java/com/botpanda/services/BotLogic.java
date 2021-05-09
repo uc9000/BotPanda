@@ -16,7 +16,7 @@ public class BotLogic {
     @Setter @Getter
     private double minRsi, maxRsi, safetyFactor;
     @Getter
-    private double lastRs, lastAvgLoss, lastAvgGain;
+    private double lastRs, lastAvgLoss, lastAvgGain, lastClosing, buyingPrice, sellingPrice;
     @Setter @Getter
     private boolean bought = false;
     @Getter
@@ -25,6 +25,8 @@ public class BotLogic {
     private List <Double> rsiList = new ArrayList<Double>();
     @Setter
     BotSettings settings = new BotSettings();
+    @Getter
+    double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
     //Constructors:
     public BotLogic(){
@@ -87,26 +89,62 @@ public class BotLogic {
         }
         log.info("RSI list:\n" + rsiList.toString());
         return result;
-    }
-       
+    }       
 
     public boolean shouldBuy(){
-        if(rsiList.get(0) > minRsi || bought){
+        for (int i = 1; i < rsiList.size(); i++){
+            if (shouldSell(i)){
+                return false;
+            }
+        }
+        if(!shouldBuy(rsiList.size())){
             return false;
         }
-        for (int i = 1; i < rsiList.size(); i++){
+        buyingPrice = lastClosing;
+        return true;
+    }
+
+    public boolean shouldBuy(int lastElements){
+        if(lastElements > rsiList.size()){
+            lastElements = rsiList.size();
+        }
+        else if(lastElements < 2){
+            lastElements = 2;
+        }
+        if(rsiList.get(rsiList.size() - lastElements) > minRsi || bought){
+            return false;
+        }
+        for (int i = rsiList.size() - lastElements + 1; i < rsiList.size(); i++){
             if (rsiList.get(i) < minRsi){
                 return false;
             }
         }
         return true;
-    }       
+    }
 
     public boolean shouldSell(){
-        if(rsiList.get(0) < maxRsi || !bought){
+        for (int i = 1; i < rsiList.size(); i++){
+            if (shouldBuy(i)){
+                return false;
+            }
+        }
+        if(!shouldSell(2)){
             return false;
         }
-        for (int i = 1; i < rsiList.size(); i++){
+        sellingPrice = lastClosing;
+        return true;
+    }
+
+    public boolean shouldSell(int lastElements){
+        if(lastElements > rsiList.size()){
+            lastElements = rsiList.size();
+        }else if(lastElements < 2){
+            lastElements = 2;
+        }
+        if(rsiList.get(rsiList.size() - lastElements) < maxRsi || !bought){
+            return false;
+        }
+        for (int i = rsiList.size() - lastElements + 1; i < rsiList.size() && i >= 0; i++){
             if (rsiList.get(i) > maxRsi){
                 return false;
             }
@@ -116,13 +154,14 @@ public class BotLogic {
 
     public void addCandle(BpCandlestick candle){
         //log.info("Adding candle:\n" + candle.toString());
+        lastClosing = candle.getClose();
         this.candleList.add(candle);
         log.debug("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());
         while(candleList.size() > settings.getMaxCandles() + 1){
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
         }
-        if(candleList.size() >= 4){
+        if(candleList.size() > safetyFactor){
             RSI();
         }
     }
@@ -148,5 +187,15 @@ public class BotLogic {
             return 50;
         }
         return rsiList.get(rsiList.size()-1);
+    }
+
+    public double gain(double before, double after){
+        before *= (1 - MAKER_FEE);
+        after *= (1 - TAKER_FEE);
+        return (after - before)/before;
+    }
+
+    public double currentGain(){
+        return gain(this.buyingPrice, this.lastClosing);
     }
 }

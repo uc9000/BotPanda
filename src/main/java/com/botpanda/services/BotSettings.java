@@ -20,7 +20,7 @@ public class BotSettings {
     public BotSettings(){
         unit = "MINUTES";
         period = 1;
-        fromCurrency = "BTC";
+        fromCurrency = "ETH";
         toCurrency = "EUR";
         maxCandles = 15;
     }

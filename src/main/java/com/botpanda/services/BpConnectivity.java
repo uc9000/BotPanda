@@ -35,8 +35,6 @@ public class BpConnectivity {
     private boolean authenticated = false;    
     private BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
-    @Getter
-    private double boughtPrice = 1, soldPrice = 1;
 
     @Autowired
     private BpJSONtemplates jsonTemplate;
@@ -73,7 +71,7 @@ public class BpConnectivity {
 
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason){
-            log.info("CLOSED \nstatus code: " + statusCode + "\n reason: " + reason);
+            log.warn("CLOSED \nstatus code: " + statusCode + "\n reason: " + reason);
             connected = false;
             authenticated = false;
             return null;
@@ -102,20 +100,18 @@ public class BpConnectivity {
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
                 if(botLogic.shouldBuy()){
-                    boughtPrice = botLogic.getLastCandle().getClose();
-                    log.info("BUYING at price: " + boughtPrice);
+                    log.warn("BUYING at price: " + botLogic.getBuyingPrice());
                     botLogic.setBought(true);
                 }
                 else if(botLogic.shouldSell()){
-                    soldPrice = botLogic.getLastCandle().getClose();
-                    log.info("SELLIN at price: " + soldPrice);
+                    log.warn("SELLING at price: " + botLogic.getSellingPrice() + "  with gain [%] : " + 100 * botLogic.currentGain());
                     botLogic.setBought(false);
                 }
                 else if (botLogic.isBought()){
-                    log.info("HOLD. Current gain [%]: " + (soldPrice - boughtPrice) * 100 / boughtPrice);
+                    log.warn("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
                 }
                 else{
-                    log.info("WAIT WITH BUYING");
+                    log.warn("WAIT WITH BUYING");
                 }
             }
             return null;
@@ -151,6 +147,7 @@ public class BpConnectivity {
         }
         return new String("GET CANDLES FAILED");
     }
+    
     //WEBSOCKETS METHODS
     public void connect(){
         try {
@@ -173,7 +170,7 @@ public class BpConnectivity {
 
     public void subscribe(){
         if(!connected){
-            System.out.println("Can't subscribe, not connected yet");
+            log.warn("Can't subscribe, not connected yet");
             return;
         }
         ws.sendText(jsonTemplate.subscribtionToCandles(settings.getFromCurrency(), settings.getToCurrency(), settings.getPeriod(), settings.getUnit()), true);
