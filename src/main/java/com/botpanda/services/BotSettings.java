@@ -19,7 +19,6 @@ public class BotSettings {
     private double stopLoss; // Fraction of price you don't want to go below - 0.01 means it will sell when gain is below -1% of buying price
     private double targetPrice; // Fraction of buying price - 0.02 means is will sell when gain reaches 2%
 
-
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
