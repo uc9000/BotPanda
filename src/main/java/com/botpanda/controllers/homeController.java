@@ -1,5 +1,7 @@
 package com.botpanda.controllers;
 
+import java.io.IOException;
+
 import com.botpanda.services.BotSettings;
 import com.botpanda.services.BpConnectivity;
 
@@ -18,35 +20,29 @@ public class homeController {
 
     @GetMapping("/")
     public String home(){
-        //bpConnecion.getAllCandles();
         bpConnecion.setSettings(settings);
         bpConnecion.connect();
         System.out.println(settings.toString());
         return "index";
     }
 
-    // @GetMapping("/auth/{key}")
-    // public String auth(@PathVariable(required = false, name = "key") String apiKey){
-    //     try {
-    //         if(apiKey == null || apiKey.length() < 4){
-    //             bpConnecion.authenticate("");
-    //         }
-    //         else{
-    //             bpConnecion.authenticate(apiKey);
-    //         }
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    //     return "index.html";
-    // }
+    @GetMapping("/auth")
+    public String auth(@RequestParam(required = false, name = "key", defaultValue = "") String apiKey){
+        try {
+            bpConnecion.authenticate(apiKey);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return "index.html";
+    }
     
-    @GetMapping("/subscribecandles" )
+    @GetMapping("/subToCandles" )
     public String subscribeToCandles(){        
         bpConnecion.subscribeToCandles();
         return "index.html";
     }
 
-    @GetMapping("/subscribeorders")
+    @GetMapping("/subToOrders")
     public String subscribeToOrders(){
         bpConnecion.subscribeToOrders();
         return "index.html";
