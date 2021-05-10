@@ -37,17 +37,16 @@ public class BotLogic {
     }
 
     public BotLogic(double min, double max){
+        this();
         minRsi = min;
         maxRsi = max;
-        safetyFactor = 5;
-        candleList = new ArrayList<BpCandlestick>();
     }
 
     public BotLogic(double min, double max, double safetyFactor){
+        this();
         minRsi = min;
         maxRsi = max;
         this.safetyFactor = safetyFactor;
-        candleList = new ArrayList<BpCandlestick>();
     }
 
     private double RS(){
@@ -123,6 +122,10 @@ public class BotLogic {
     }
 
     public boolean shouldSell(){
+        double gain = currentGain();
+        if(gain > settings.getTargetPrice() || gain < settings.getStopLoss()){
+            return true;
+        }
         for (int i = 1; i < rsiList.size(); i++){
             if (shouldBuy(i)){
                 return false;
@@ -195,5 +198,13 @@ public class BotLogic {
 
     public double currentGain(){
         return gain(this.buyingPrice, this.lastClosing);
+    }
+
+    public double amount(){
+        double amount = settings.getFiatPriceLimit() / lastClosing;         
+        if (amount > settings.getCryptoPriceLimit()){
+            amount = settings.getCryptoPriceLimit();
+        }
+        return amount;
     }
 }

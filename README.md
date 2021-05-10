@@ -7,6 +7,7 @@ The bot sells or buys currencies at a given price limit based on common indicato
 It retrieves and analyzes candles given from Bitpanda Pro REST and Web Sockets.
 
 ## To Do:
+- [ ] Automatic reconnect after unwanted disconnecion
 - [ ] Sending actual order requests to web socket (requires more testing first)
 - [ ] MACD indicator for trading
 - [ ] Simple GUI with use of HTML and REST

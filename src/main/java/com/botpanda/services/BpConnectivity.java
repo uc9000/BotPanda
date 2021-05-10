@@ -19,6 +19,10 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.CompletionStage;
 
+import com.botpanda.entities.enums.OrderSide;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,11 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BpConnectivity {
     @Getter
-    private boolean connected = false;
-    @Getter
-    private boolean authenticated = false;    
-    @Getter
-    private boolean subscribedToOrders = false; 
+    private boolean connected = false, authenticated = false,  subscribedToOrders = false, subscribedToCandles = false; 
     private BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
 
@@ -87,25 +87,27 @@ public class BpConnectivity {
             if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
                 log.info("received message: " + message.toString());
             }
+            if(type.equals("SUBSCRIPTIONS")){
+                JSONArray channels = new JSONObject(message.toString()).getJSONArray("channels");
+                for (int i = 0; i < channels.length() ; i++){
+                    JSONObject jo = new JSONObject(channels.get(i).toString());
+                    if(jo.get("name").equals("ORDERS")){
+                        subscribedToOrders = true;
+                    }
+                }
+            }
             if(type.equals("AUTHENTICATED")){
                 authenticated = true;
             }
-            //Not necessery just for candlestick subscription
-            //Later change that to api key given from gui
-            // if(!authenticated){
-            //     try {
-            //         authenticate("");
-            //     } catch (IOException e) {
-            //         e.printStackTrace();
-            //     }
-            // }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
                 if(botLogic.shouldBuy()){
+                    sendMarketOrder(OrderSide.BUY, botLogic.amount());
                     log.warn("BUYING at price: " + botLogic.getBuyingPrice());
                     botLogic.setBought(true);
                 }
                 else if(botLogic.shouldSell()){
+                    sendMarketOrder(OrderSide.SELL, botLogic.amount());
                     log.warn("SELLING at price: " + botLogic.getSellingPrice() + "  with gain [%] : " + 100 * botLogic.currentGain());
                     botLogic.setBought(false);
                 }
@@ -198,7 +200,14 @@ public class BpConnectivity {
         );
     }
 
-    public void sendMarketOrder(){
-        
+    public void sendMarketOrder(OrderSide side, double amount){
+        if(!subscribedToOrders){
+            log.warn("To make orders subscribe to order first!");
+            return;
+        }
+        String msg = jsonTemplate.createOrder(settings.getFromCurrency(), settings.getToCurrency(), side, amount);
+        log.info("sending request:\n" + msg);
+        //TODO : uncomment after testing
+        //ws.sendText(msg, true);
     }
 }
