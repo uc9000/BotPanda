@@ -148,6 +148,7 @@ public class BpConnectivity {
             return response.toString();
         }catch (Exception e){
             e.printStackTrace();
+            
         }
         return new String("GET CANDLES FAILED");
     }
