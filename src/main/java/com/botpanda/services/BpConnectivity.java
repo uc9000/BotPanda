@@ -33,6 +33,8 @@ public class BpConnectivity {
     private boolean connected = false;
     @Getter
     private boolean authenticated = false;    
+    @Getter
+    private boolean subscribedToOrders = false; 
     private BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
 
@@ -108,10 +110,10 @@ public class BpConnectivity {
                     botLogic.setBought(false);
                 }
                 else if (botLogic.isBought()){
-                    log.warn("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
+                    log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
                 }
                 else{
-                    log.warn("WAIT WITH BUYING");
+                    log.info("WAIT WITH BUYING");
                 }
             }
             return null;
@@ -168,13 +170,35 @@ public class BpConnectivity {
         ws.request(1);
     }
 
-    public void subscribe(){
+    public void subscribeToCandles(){
         if(!connected){
-            log.warn("Can't subscribe, not connected yet");
+            log.warn("Can't subscribe to candles, not connected yet");
             return;
         }
-        ws.sendText(jsonTemplate.subscribtionToCandles(settings.getFromCurrency(), settings.getToCurrency(), settings.getPeriod(), settings.getUnit()), true);
-        ws.request(1);
+        ws.sendText(
+            jsonTemplate.subscribtionToCandles(
+                settings.getFromCurrency().name(),
+                settings.getToCurrency().name(),
+                settings.getPeriod(),
+                settings.getUnit().name()
+            ),
+            true
+        );
         botLogic.setCandleList(jsonTemplate.parseCandleList(getAllCandles()));
+    }
+
+    public void subscribeToOrders(){
+        if(!authenticated){
+            log.warn("Can't subscribe to orders, not authenticated yet");
+            return;
+        }
+        ws.sendText(
+            jsonTemplate.subscriptionToOrders(),
+            true
+        );
+    }
+
+    public void sendMarketOrder(){
+        
     }
 }

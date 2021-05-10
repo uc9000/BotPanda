@@ -190,9 +190,7 @@ public class BotLogic {
     }
 
     public double gain(double before, double after){
-        before *= (1 - MAKER_FEE);
-        after *= (1 - TAKER_FEE);
-        return (after - before)/before;
+        return  (1 - TAKER_FEE) * (1 - MAKER_FEE) * (after - before)/before;
     }
 
     public double currentGain(){

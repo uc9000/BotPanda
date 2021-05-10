@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.botpanda.entities.BpCandlestick;
+import com.botpanda.entities.Order;
+import com.botpanda.entities.enums.Currency;
+import com.botpanda.entities.enums.OrderSide;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
@@ -17,7 +20,6 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Slf4j
 public class BpJSONtemplates {
-    private boolean print = true;
     private String output;
     private Gson gson = new Gson();
 
@@ -47,6 +49,17 @@ public class BpJSONtemplates {
         return output;
     }
 
+    public String subscriptionToOrders(){
+        JSONObject jo = new JSONObject();
+        jo.put("type", "SUBSCRIBE")
+        .put("channels", new JSONArray()
+            .put(new JSONObject().put("name", "ORDERS"))
+        );
+        output = jo.toString();
+        log.debug(output);
+        return output;
+    }
+
     public BpCandlestick parseCandle(String candleJSON){
         log.trace("Parsed:\n" + candleJSON);
         return gson.fromJson(candleJSON, BpCandlestick.class);
@@ -66,5 +79,15 @@ public class BpJSONtemplates {
         String type = new JSONObject(message).get("type").toString();
         log.debug("processed TYPE = " + type);
         return type;
+    }
+
+    public String createOrder(Currency fromCurrency, Currency toCurrency, OrderSide side, double amount){
+        String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), String.valueOf(amount)));
+        JSONObject order = new JSONObject(strOrder);
+        JSONObject json = new JSONObject()
+            .put("type", "CREATE_ORDER")
+            .put("order", order);
+        log.debug(json.toString(4));
+        return json.toString();
     }
 }

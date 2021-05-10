@@ -1,27 +1,28 @@
 package com.botpanda.services;
 
+import com.botpanda.entities.enums.Currency;
+import com.botpanda.entities.enums.Unit;
+
 import org.springframework.stereotype.Component;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 @Component
+@Data
 public class BotSettings {
-    @Setter
-    @Getter
-    private String fromCurrency, toCurrency, unit;
-    @Setter
-    @Getter
+    private Currency fromCurrency, toCurrency;
+    private Unit unit;
     private int period, maxCandles;
-    @Getter
-    @Setter
     private boolean started = false;
+    private double priceLimit; // In your default fiat currency (EUR or USD)
+
 
     public BotSettings(){
-        unit = "MINUTES";
+        unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = "ETH";
-        toCurrency = "EUR";
+        fromCurrency = Currency.BTC;
+        toCurrency = Currency.EUR;
         maxCandles = 15;
+        priceLimit = 20;
     }
 }

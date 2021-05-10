@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import com.botpanda.entities.BpCandlestick;
+import com.botpanda.entities.enums.Currency;
+import com.botpanda.entities.enums.OrderSide;
 import com.botpanda.services.BotLogic;
 import com.botpanda.services.BotSettings;
 import com.botpanda.services.BpConnectivity;
 import com.botpanda.services.BpJSONtemplates;
 
 import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -41,7 +44,12 @@ class BotpandaApplicationTests {
 		bl.setCandleList(list);
 		log.info("List in BL:\n" + bl.getCandleList().toString());
 		//then
-		assert(list).equals(bl.getCandleList());
+		if(list.size() == bl.getCandleList().size()){
+			assert(list.toString()).equals(bl.getCandleList().toString());
+		}else{
+			assertTrue(bl.getCandleList().size() == settings.getMaxCandles() + 1);
+		}
+		
 	}
 
 	@Test
@@ -67,5 +75,17 @@ class BotpandaApplicationTests {
 		log.info("RS = " + bl.getLastRs() + " ; avg loss = " + bl.getLastAvgLoss() + " and avg gain = " + bl.getLastAvgGain());
 		//then
 		assertTrue(rsi == expectedRsi);
+	}
+
+	@Test
+	void orderJsonTest(){
+		String jsStr = js.createOrder(Currency.BTC, Currency.EUR, OrderSide.BUY, 0.006);
+		JSONObject json = new JSONObject(jsStr);
+		JSONObject order = json.getJSONObject("order");
+		log.info(json.toString(4));
+		log.info(order.toString(4));
+		assert(order.get("instrument_code")).equals("BTC_EUR");
+		assert(order.get("type")).equals("MARKET");
+		assert(order.get("amount")).equals("0.006");
 	}
 }

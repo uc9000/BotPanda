@@ -38,9 +38,15 @@ public class homeController {
         return "index.html";
     }
     
-    @GetMapping("/subscribe" )
-    public String subscribe(){        
-        bpConnecion.subscribe();
+    @GetMapping("/subscribe/candles" )
+    public String subscribeToCandles(){        
+        bpConnecion.subscribeToCandles();
+        return "index.html";
+    }
+
+    @GetMapping("/subscribe/orders")
+    public String subscribeToOrders(){
+        //bpConnecion.subscribeToOrders();
         return "index.html";
     }
 
