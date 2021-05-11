@@ -16,7 +16,7 @@ public class BotLogic {
     @Setter @Getter
     private double minRsi, maxRsi, safetyFactor;
     @Getter
-    private double lastRs, lastAvgLoss, lastAvgGain, lastClosing, buyingPrice, sellingPrice;
+    private double lastRs, lastAvgLoss, lastAvgGain, lastClosing, buyingPrice = 0, sellingPrice = 0;
     @Setter @Getter
     private boolean bought = false;
     @Getter
@@ -104,6 +104,9 @@ public class BotLogic {
     }
 
     public boolean shouldBuy(int lastElements){
+        if(bought){
+            return false;
+        }
         if(lastElements > rsiList.size()){
             lastElements = rsiList.size();
         }
@@ -122,8 +125,11 @@ public class BotLogic {
     }
 
     public boolean shouldSell(){
+        if(!bought){
+            return false;
+        }
         double gain = currentGain();
-        if(gain > settings.getTargetPrice() || gain < settings.getStopLoss()){
+        if(sellingPrice != 0 && buyingPrice != 0  && (gain > settings.getTargetPrice() || gain < settings.getStopLoss())){
             return true;
         }
         for (int i = 1; i < rsiList.size(); i++){
@@ -156,7 +162,7 @@ public class BotLogic {
     }
 
     public void addCandle(BpCandlestick candle){
-        //log.info("Adding candle:\n" + candle.toString());
+        log.info("Adding candle:\n" + candle.getClose());
         lastClosing = candle.getClose();
         this.candleList.add(candle);
         log.debug("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());

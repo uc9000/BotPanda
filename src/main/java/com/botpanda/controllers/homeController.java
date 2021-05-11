@@ -1,7 +1,5 @@
 package com.botpanda.controllers;
 
-import java.io.IOException;
-
 import com.botpanda.services.BotSettings;
 import com.botpanda.services.BpConnectivity;
 
@@ -28,31 +26,25 @@ public class homeController {
 
     @GetMapping("/auth")
     public String auth(@RequestParam(required = false, name = "key", defaultValue = "") String apiKey){
-        try {
-            bpConnecion.authenticate(apiKey);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return "index.html";
+        bpConnecion.authenticate(apiKey);
+        return "index";
     }
     
     @GetMapping("/subToCandles" )
     public String subscribeToCandles(){        
         bpConnecion.subscribeToCandles();
-        return "index.html";
+        return "index";
     }
 
     @GetMapping("/subToOrders")
     public String subscribeToOrders(){
         bpConnecion.subscribeToOrders();
-        return "index.html";
+        return "index";
     }
 
     @GetMapping("/close")
     public String close(@RequestParam(name = "sell", defaultValue = "false", required = false) boolean sell){
-        if(sell){
-            //TODO
-        }
-        return "index.html";
+        bpConnecion.closeConnection(sell);
+        return "index";
     }
 }

@@ -61,12 +61,12 @@ public class BpConnectivity {
     //WEBSOCKET VARS
     private static final String WS_URL = "wss://streams.exchange.bitpanda.com";
     private WebSocket ws;
+    private String apiKey;
 
     Listener wsListener = new Listener(){
         @Override
         public void onOpen(WebSocket webSocket){
             connected = true;
-            authenticated = false;
             webSocket.request(1);
             log.info("\nOPENED with subprotocol: " + webSocket.getSubprotocol());
         }
@@ -74,8 +74,7 @@ public class BpConnectivity {
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason){
             log.warn("CLOSED \nstatus code: " + statusCode + "\n reason: " + reason);
-            connected = false;
-            authenticated = false;
+            reconnect();
             return null;
         }
 
@@ -103,12 +102,20 @@ public class BpConnectivity {
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
                 if(botLogic.shouldBuy()){
                     sendMarketOrder(OrderSide.BUY, botLogic.amount());
-                    log.warn("BUYING at price: " + botLogic.getBuyingPrice());
+                    log.warn(
+                        "BUYING " + botLogic.amount() + " " 
+                        + settings.getToCurrency().name() + " at price: " 
+                        + botLogic.getBuyingPrice()
+                    );
                     botLogic.setBought(true);
                 }
                 else if(botLogic.shouldSell()){
                     sendMarketOrder(OrderSide.SELL, botLogic.amount());
-                    log.warn("SELLING at price: " + botLogic.getSellingPrice() + "  with gain [%] : " + 100 * botLogic.currentGain());
+                    log.warn(
+                        "SELLING " + botLogic.amount() + " " + settings.getToCurrency().name() 
+                        + " at price: " + botLogic.getSellingPrice() 
+                        + "  with gain [%] : " + 100 * botLogic.currentGain()
+                    );
                     botLogic.setBought(false);
                 }
                 else if (botLogic.isBought()){
@@ -163,14 +170,19 @@ public class BpConnectivity {
         }
     }
 
-    public void authenticate(String key) throws IOException{
-        if(key.length() < 1){
+    public void authenticate(String apiKey){
+        if(apiKey.length() < 1){
             ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("API.private").getFile());
-            key = new String(Files.readAllBytes(file.toPath()));
+            File file = new File(classLoader.getResource("API.private").getFile());            
+            try {
+                apiKey = new String(Files.readAllBytes(file.toPath()));
+            } catch (IOException e) {
+                log.error("Authentication error: API key not provided");
+            }
+        }else{
+            this.apiKey = apiKey;
         }
-        ws.sendText(jsonTemplate.authentication(key), true);
-        ws.request(1);
+        ws.sendText(jsonTemplate.authentication(apiKey), true);
     }
 
     public void subscribeToCandles(){
@@ -178,6 +190,7 @@ public class BpConnectivity {
             log.warn("Can't subscribe to candles, not connected yet");
             return;
         }
+        botLogic.setCandleList(jsonTemplate.parseCandleList(getAllCandles()));
         ws.sendText(
             jsonTemplate.subscribtionToCandles(
                 settings.getFromCurrency().name(),
@@ -186,8 +199,7 @@ public class BpConnectivity {
                 settings.getUnit().name()
             ),
             true
-        );
-        botLogic.setCandleList(jsonTemplate.parseCandleList(getAllCandles()));
+        );        
     }
 
     public void subscribeToOrders(){
@@ -210,5 +222,34 @@ public class BpConnectivity {
         log.info("sending request:\n" + msg);
         //TODO : uncomment after testing
         //ws.sendText(msg, true);
+    }
+
+    public void closeConnection(boolean sell){
+        sendMarketOrder(OrderSide.SELL, botLogic.amount());
+        ws.abort();
+        connected = false;
+        authenticated = false;
+        subscribedToCandles = false;
+        subscribedToOrders = false;
+    }
+
+    public void reconnect(){
+        if(connected){
+            connect();
+        }        
+        if(authenticated){
+            authenticate(apiKey);
+        }
+        if(subscribedToCandles){
+            subscribeToCandles();
+        }
+        if(subscribedToOrders){
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            subscribeToOrders();
+        }
     }
 }

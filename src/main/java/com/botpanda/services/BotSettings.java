@@ -22,10 +22,10 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.ETH;
+        fromCurrency = Currency.DOGE;
         toCurrency = Currency.EUR;
         maxCandles = 15;
-        fiatPriceLimit = 20;
+        fiatPriceLimit = 10;
         cryptoPriceLimit = 500;
         stopLoss = 0.01;
         targetPrice = 0.02;
