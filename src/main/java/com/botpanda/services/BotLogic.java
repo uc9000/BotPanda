@@ -212,6 +212,5 @@ public class BotLogic {
             amount = settings.getCryptoPriceLimit();
         }
         return amount;
-    }
-    
+    }    
 }

@@ -236,7 +236,10 @@ public class BpConnectivity {
     public void reconnect(){
         if(connected){
             connect();
-        }        
+        }
+        else{
+            return;
+        }     
         if(authenticated){
             authenticate(apiKey);
         }
