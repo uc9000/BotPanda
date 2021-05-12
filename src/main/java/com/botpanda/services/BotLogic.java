@@ -16,7 +16,7 @@ public class BotLogic {
     @Setter @Getter
     private double minRsi, maxRsi, safetyFactor;
     @Getter
-    private double lastRs, lastAvgLoss, lastAvgGain, lastClosing, buyingPrice = 0, sellingPrice = 0;
+    private double lastRs, lastAvgLoss, lastAvgGain, lastClosing, buyingPrice = 0, sellingPrice = 0, boughtFor = 0;
     @Setter @Getter
     private boolean bought = false;
     @Getter
@@ -43,9 +43,7 @@ public class BotLogic {
     }
 
     public BotLogic(double min, double max, double safetyFactor){
-        this();
-        minRsi = min;
-        maxRsi = max;
+        this(min, max);
         this.safetyFactor = safetyFactor;
     }
 
@@ -129,7 +127,7 @@ public class BotLogic {
             return false;
         }
         double gain = currentGain();
-        if(sellingPrice != 0 && buyingPrice != 0  && (gain > settings.getTargetPrice() || gain < settings.getStopLoss())){
+        if(gain > settings.getTargetPrice() || -1 * settings.getStopLoss() > gain){
             return true;
         }
         for (int i = 1; i < rsiList.size(); i++){
@@ -199,18 +197,19 @@ public class BotLogic {
     }
 
     public double gain(double before, double after){
-        return  (1 - TAKER_FEE) * (1 - MAKER_FEE) * (after - before)/before;
+        return (((1 - TAKER_FEE) * after) - ((1 + MAKER_FEE) * before))/before;
     }
 
     public double currentGain(){
         return gain(this.buyingPrice, this.lastClosing);
     }
 
-    public double amount(){
+    public double amountToBuy(){
         double amount = settings.getFiatPriceLimit() / lastClosing;         
         if (amount > settings.getCryptoPriceLimit()){
             amount = settings.getCryptoPriceLimit();
         }
+        boughtFor = amount;
         return amount;
-    }    
+    }
 }

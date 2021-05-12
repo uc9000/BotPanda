@@ -22,7 +22,7 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.DOGE;
+        fromCurrency = Currency.XRP;
         toCurrency = Currency.EUR;
         maxCandles = 15;
         fiatPriceLimit = 10;

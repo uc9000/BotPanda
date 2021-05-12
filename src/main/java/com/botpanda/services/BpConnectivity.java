@@ -101,18 +101,18 @@ public class BpConnectivity {
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
                 if(botLogic.shouldBuy()){
-                    sendMarketOrder(OrderSide.BUY, botLogic.amount());
+                    sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
                     log.warn(
-                        "BUYING " + botLogic.amount() + " " 
-                        + settings.getToCurrency().name() + " at price: " 
+                        "BUYING " + botLogic.getBoughtFor() + " " 
+                        + settings.getFromCurrency().name() + " at price: " 
                         + botLogic.getBuyingPrice()
                     );
                     botLogic.setBought(true);
                 }
                 else if(botLogic.shouldSell()){
-                    sendMarketOrder(OrderSide.SELL, botLogic.amount());
+                    sendMarketOrder(OrderSide.SELL, botLogic.getBoughtFor());
                     log.warn(
-                        "SELLING " + botLogic.amount() + " " + settings.getToCurrency().name() 
+                        "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
                         + " at price: " + botLogic.getSellingPrice() 
                         + "  with gain [%] : " + 100 * botLogic.currentGain()
                     );
@@ -225,7 +225,9 @@ public class BpConnectivity {
     }
 
     public void closeConnection(boolean sell){
-        sendMarketOrder(OrderSide.SELL, botLogic.amount());
+        if(sell){
+            sendMarketOrder(OrderSide.SELL, botLogic.amountToBuy());
+        }
         ws.abort();
         connected = false;
         authenticated = false;
