@@ -23,6 +23,8 @@ public class BotLogic {
     private List <BpCandlestick> candleList;
     @Getter
     private List <Double> rsiList = new ArrayList<Double>();
+    @Getter
+    private List <Double> gainList = new ArrayList<Double>();
     @Setter
     BotSettings settings = new BotSettings();
     @Getter
@@ -126,8 +128,7 @@ public class BotLogic {
         if(!bought){
             return false;
         }
-        double gain = currentGain();
-        if(gain > settings.getTargetPrice() || -1 * settings.getStopLoss() > gain){
+        if(targetReached(1) || stopLossReached(2)){
             return true;
         }
         for (int i = 1; i < rsiList.size(); i++){
@@ -171,6 +172,12 @@ public class BotLogic {
         if(candleList.size() > safetyFactor){
             RSI();
         }
+        if(bought){
+            gainList.add(currentGain());
+        }
+        while (gainList.size() > safetyFactor){
+            gainList.remove(0);
+        }
     }
 
     public void setCandleList(List <BpCandlestick> _candleList){
@@ -211,5 +218,23 @@ public class BotLogic {
         }
         boughtFor = amount;
         return amount;
+    }
+
+    public boolean targetReached(int lastElements){
+        for(int i = 0 ; i < lastElements ; i++){
+            if(gainList.get(gainList.size() - 1 - i) < settings.getTarget()){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean stopLossReached(int lastElements){
+        for(int i = 0 ; i < lastElements ; i++){
+            if(gainList.get(gainList.size() - 1 - i) > -1 * settings.getStopLoss()){
+                return false;
+            }
+        }
+        return true;
     }
 }

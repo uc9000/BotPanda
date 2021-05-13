@@ -3,11 +3,9 @@ package com.botpanda.services;
 import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.Unit;
 
-import org.springframework.stereotype.Component;
-
 import lombok.Data;
 
-@Component
+//@Component
 @Data
 public class BotSettings {
     private Currency fromCurrency, toCurrency;
@@ -17,7 +15,7 @@ public class BotSettings {
     private double fiatPriceLimit; // Max trade amount of your default fiat currency (EUR or USD)
     private double cryptoPriceLimit; // Max trade amount of your crypto currency (BTC, ETH etc.)
     private double stopLoss; // Fraction of price you don't want to go below - 0.01 means it will sell when gain is below -1% of buying price
-    private double targetPrice; // Fraction of buying price - 0.02 means is will sell when gain reaches 2%
+    private double target; // Fraction of buying price - 0.02 means is will sell when gain reaches 2%
 
     public BotSettings(){
         unit = Unit.MINUTES;
@@ -28,6 +26,6 @@ public class BotSettings {
         fiatPriceLimit = 10;
         cryptoPriceLimit = 500;
         stopLoss = 0.01;
-        targetPrice = 0.02;
+        target = 0.02;
     }
 }
