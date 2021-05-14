@@ -221,7 +221,7 @@ public class BpConnectivity {
         String msg = jsonTemplate.createOrder(settings.getFromCurrency(), settings.getToCurrency(), side, amount);
         log.info("sending request:\n" + msg);
         //TODO : uncomment after testing
-        //ws.sendText(msg, true);
+        ws.sendText(msg, true);
     }
 
     public void closeConnection(boolean sell){

@@ -1,5 +1,7 @@
 package com.botpanda.services;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,7 +84,9 @@ public class BpJSONtemplates {
     }
 
     public String createOrder(Currency fromCurrency, Currency toCurrency, OrderSide side, double amount){
-        String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), String.valueOf(amount)));
+        log.info("Precision: " + fromCurrency.getPrecision());
+        BigDecimal bd = new BigDecimal(amount).setScale(fromCurrency.getPrecision(), RoundingMode.DOWN);
+        String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), String.valueOf(bd.doubleValue())));
         JSONObject order = new JSONObject(strOrder);
         JSONObject json = new JSONObject()
             .put("type", "CREATE_ORDER")

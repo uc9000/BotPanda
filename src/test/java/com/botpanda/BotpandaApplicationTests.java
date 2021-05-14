@@ -79,13 +79,13 @@ class BotpandaApplicationTests {
 
 	@Test
 	void orderJsonTest(){
-		String jsStr = js.createOrder(Currency.BTC, Currency.EUR, OrderSide.BUY, 0.006);
+		String jsStr = js.createOrder(Currency.BTC, Currency.EUR, OrderSide.BUY, 0.00634534565);
 		JSONObject json = new JSONObject(jsStr);
 		JSONObject order = json.getJSONObject("order");
 		log.info(json.toString(4));
-		log.info(order.toString(4));
+		//log.info(order.toString(4));
 		assert(order.get("instrument_code")).equals("BTC_EUR");
 		assert(order.get("type")).equals("MARKET");
-		assert(order.get("amount")).equals("0.006");
+		assert(order.get("amount")).equals("0.00634534");
 	}
 }
