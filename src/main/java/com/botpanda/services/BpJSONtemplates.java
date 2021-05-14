@@ -84,9 +84,16 @@ public class BpJSONtemplates {
     }
 
     public String createOrder(Currency fromCurrency, Currency toCurrency, OrderSide side, double amount){
-        log.info("Precision: " + fromCurrency.getPrecision());
-        BigDecimal bd = new BigDecimal(amount).setScale(fromCurrency.getPrecision(), RoundingMode.DOWN);
-        String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), String.valueOf(bd.doubleValue())));
+        int precision = fromCurrency.getAmountPrecision();
+        log.debug("Precision: " + precision);
+        BigDecimal bd = new BigDecimal(amount).setScale(fromCurrency.getAmountPrecision(), RoundingMode.DOWN);
+        String strAmount;
+        if(precision == 0){
+            strAmount = String.valueOf((int)amount);
+        }else{
+            strAmount = String.valueOf(bd.doubleValue());
+        }
+        String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), strAmount));
         JSONObject order = new JSONObject(strOrder);
         JSONObject json = new JSONObject()
             .put("type", "CREATE_ORDER")

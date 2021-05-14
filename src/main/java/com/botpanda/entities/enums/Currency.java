@@ -8,22 +8,23 @@ Enums that store it's currency code in the name() and precision as decimal place
 public enum Currency {
     EUR(2),
     USD(2),
-    BTC(8),
-    ETH(8),
-    DOGE(8),
-    XRP(8),
-    LTC(8),
-    MIOTA(8),
-    BEST(8),
-    LINK(8),
-    PAN(8),
-    DOT(8),
-    XLM(8),
-    CHZ(8);
+    BTC(5),
+    ETH(4),
+    DOGE(0),
+    XRP(0),
+    LTC(5),
+    MIOTA(0),
+    BEST(0),
+    LINK(2),
+    PAN(0),
+    DOT(4),
+    XLM(1),
+    CHZ(2),
+    ADA(3);
 
     @Getter
-    private final int precision;
+    private final int amountPrecision;
     Currency(int precision){
-        this.precision = precision;
+        this.amountPrecision = precision;
     }
 }
