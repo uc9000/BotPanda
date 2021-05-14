@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BpConnectivity {
     @Getter
-    private boolean connected = false, authenticated = false,  subscribedToOrders = false, subscribedToCandles = false; 
+    private boolean connected = false, authenticated = false,  subscribedToOrders = false, subscribedToCandles = false, reconnecting = false; 
     private BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
 
@@ -61,7 +61,7 @@ public class BpConnectivity {
     //WEBSOCKET VARS
     private static final String WS_URL = "wss://streams.exchange.bitpanda.com";
     private WebSocket ws;
-    private String apiKey;
+    private String apiKey = new String("");
 
     Listener wsListener = new Listener(){
         @Override
@@ -74,7 +74,12 @@ public class BpConnectivity {
         @Override
         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason){
             log.warn("CLOSED \nstatus code: " + statusCode + "\n reason: " + reason);
-            reconnect();
+            connected = false;
+            subscribedToOrders = false;
+            authenticated = false;
+            subscribedToCandles = false;
+            reconnecting = true;
+            connect();            
             return null;
         }
 
@@ -82,6 +87,15 @@ public class BpConnectivity {
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
             //log.info(message.toString());
+            if (reconnecting){
+                if(settings.isTestingMode() && !subscribedToCandles){
+                    subscribeToCandles();
+                    reconnecting = false;
+                }
+                else if(!authenticated){
+                    authenticate(apiKey);
+                }
+            }
             String type = jsonTemplate.getJSONtype(message.toString());
             if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
                 log.info("received message: " + message.toString());
@@ -91,12 +105,23 @@ public class BpConnectivity {
                 for (int i = 0; i < channels.length() ; i++){
                     JSONObject jo = new JSONObject(channels.get(i).toString());
                     if(jo.get("name").equals("ORDERS")){
+                        log.info("Subscribed to orders");
                         subscribedToOrders = true;
+                        if (!subscribedToCandles && reconnecting){
+                            subscribeToCandles();
+                        }
+                    }else if(jo.get("name").equals("CANDLESTICKS")){
+                        log.info("Subscribed to candles");
+                        subscribedToCandles = true;
+                        reconnecting = false;
                     }
                 }
             }
             if(type.equals("AUTHENTICATED")){
                 authenticated = true;
+                if(!subscribedToOrders && reconnecting){
+                    subscribeToOrders();
+                }
             }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
@@ -107,7 +132,10 @@ public class BpConnectivity {
                         + settings.getFromCurrency().name() + " at price: " 
                         + botLogic.getBuyingPrice()
                     );
-                    botLogic.setBought(true);
+                    if(settings.isTestingMode()){
+                        botLogic.setBought(true);
+                    }
+                    
                 }
                 else if(botLogic.shouldSell()){
                     sendMarketOrder(OrderSide.SELL, botLogic.getBoughtFor());
@@ -116,7 +144,9 @@ public class BpConnectivity {
                         + " at price: " + botLogic.getSellingPrice() 
                         + "  with gain [%] : " + 100 * botLogic.currentGain()
                     );
-                    botLogic.setBought(false);
+                    if(settings.isTestingMode()){
+                        botLogic.setBought(false);
+                    }
                 }
                 else if (botLogic.isBought()){
                     log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
@@ -162,6 +192,7 @@ public class BpConnectivity {
     
     //WEBSOCKETS METHODS
     public void connect(){
+        reconnecting = true;
         try {
             ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(20)).buildAsync(new URI(WS_URL), wsListener).join();
         } catch (URISyntaxException e) {
@@ -171,7 +202,7 @@ public class BpConnectivity {
     }
 
     public void authenticate(String apiKey){
-        if(apiKey.length() < 1){
+        if(apiKey.length() < 10){
             ClassLoader classLoader = getClass().getClassLoader();
             File file = new File(classLoader.getResource("API.private").getFile());            
             try {
@@ -220,8 +251,9 @@ public class BpConnectivity {
         }
         String msg = jsonTemplate.createOrder(settings.getFromCurrency(), settings.getToCurrency(), side, amount);
         log.info("sending request:\n" + msg);
-        //TODO : uncomment after testing
-        ws.sendText(msg, true);
+        if(!settings.isTestingMode()){
+            ws.sendText(msg, true);
+        }        
     }
 
     public void closeConnection(boolean sell){
@@ -233,28 +265,5 @@ public class BpConnectivity {
         authenticated = false;
         subscribedToCandles = false;
         subscribedToOrders = false;
-    }
-
-    public void reconnect(){
-        if(connected){
-            connect();
-        }
-        else{
-            return;
-        }     
-        if(authenticated){
-            authenticate(apiKey);
-        }
-        if(subscribedToCandles){
-            subscribeToCandles();
-        }
-        if(subscribedToOrders){
-            try {
-                Thread.sleep(300);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            subscribeToOrders();
-        }
     }
 }

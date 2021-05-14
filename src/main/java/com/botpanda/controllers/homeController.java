@@ -16,8 +16,9 @@ public class homeController {
     BpConnectivity bpConnecion;
 
 
-    @GetMapping("/")
+    @GetMapping("/start")
     public String home(){
+        settings.setTestingMode(false);
         bpConnecion.setSettings(settings);
         bpConnecion.connect();
         System.out.println(settings.toString());

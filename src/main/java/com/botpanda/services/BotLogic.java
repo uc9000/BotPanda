@@ -128,7 +128,7 @@ public class BotLogic {
         if(!bought){
             return false;
         }
-        if(targetReached(1) || stopLossReached(2)){
+        if(targetReached(1) || stopLossReached(rsiList.size())){
             return true;
         }
         for (int i = 1; i < rsiList.size(); i++){
@@ -161,7 +161,7 @@ public class BotLogic {
     }
 
     public void addCandle(BpCandlestick candle){
-        log.info("Adding candle:\n" + candle.getClose());
+        log.info("Adding candle: " + candle.getClose());
         lastClosing = candle.getClose();
         this.candleList.add(candle);
         log.debug("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());
@@ -221,6 +221,12 @@ public class BotLogic {
     }
 
     public boolean targetReached(int lastElements){
+        if(lastElements < 1 || gainList.size() < safetyFactor){
+            return false;
+        }
+        if(lastElements >= gainList.size()){
+            lastElements = gainList.size() -1;
+        }
         for(int i = 0 ; i < lastElements ; i++){
             if(gainList.get(gainList.size() - 1 - i) < settings.getTarget()){
                 return false;
@@ -230,6 +236,12 @@ public class BotLogic {
     }
 
     public boolean stopLossReached(int lastElements){
+        if(lastElements < 1 || gainList.size() < safetyFactor){
+            return false;
+        }
+        if(lastElements >= gainList.size()){
+            lastElements = gainList.size() -1;
+        }
         for(int i = 0 ; i < lastElements ; i++){
             if(gainList.get(gainList.size() - 1 - i) > -1 * settings.getStopLoss()){
                 return false;
