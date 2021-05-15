@@ -19,6 +19,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.concurrent.CompletionStage;
 
+import com.botpanda.entities.Order;
 import com.botpanda.entities.enums.OrderSide;
 
 import org.json.JSONArray;
@@ -86,7 +87,6 @@ public class BpConnectivity {
         @Override
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
-            //log.info(message.toString());
             if (reconnecting){
                 if(settings.isTestingMode() && !subscribedToCandles){
                     subscribeToCandles();
@@ -96,35 +96,13 @@ public class BpConnectivity {
                     authenticate(apiKey);
                 }
             }
-            String type = jsonTemplate.getJSONtype(message.toString());
+            String strMsg = message.toString();
+            String type = jsonTemplate.getJSONtype(strMsg);
             if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
-                log.info("received message: " + message.toString());
-            }
-            if(type.equals("SUBSCRIPTIONS")){
-                JSONArray channels = new JSONObject(message.toString()).getJSONArray("channels");
-                for (int i = 0; i < channels.length() ; i++){
-                    JSONObject jo = new JSONObject(channels.get(i).toString());
-                    if(jo.get("name").equals("ORDERS")){
-                        log.info("Subscribed to orders");
-                        subscribedToOrders = true;
-                        if (!subscribedToCandles && reconnecting){
-                            subscribeToCandles();
-                        }
-                    }else if(jo.get("name").equals("CANDLESTICKS")){
-                        log.info("Subscribed to candles");
-                        subscribedToCandles = true;
-                        reconnecting = false;
-                    }
-                }
-            }
-            if(type.equals("AUTHENTICATED")){
-                authenticated = true;
-                if(!subscribedToOrders && reconnecting){
-                    subscribeToOrders();
-                }
+                log.info("received message: " + strMsg);
             }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
-                botLogic.addCandle(jsonTemplate.parseCandle(message.toString()));
+                botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
                 if(botLogic.shouldBuy()){
                     sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
                     log.warn(
@@ -153,6 +131,38 @@ public class BpConnectivity {
                 }
                 else{
                     log.info("WAIT WITH BUYING");
+                }
+            }
+            else if(!settings.isTestingMode() && type.equals("ORDER_CREATED")){
+                Order order = jsonTemplate.parseOrder(new JSONObject(strMsg).get("order").toString());
+                if(order.getSide().equals("BUY")){
+                    botLogic.setBought(true);
+                }
+                else {
+                    botLogic.setBought(false);
+                }
+            }
+            else if(type.equals("SUBSCRIPTIONS")){
+                JSONArray channels = new JSONObject(strMsg).getJSONArray("channels");
+                for (int i = 0; i < channels.length() ; i++){
+                    JSONObject jo = new JSONObject(channels.get(i).toString());
+                    if(jo.get("name").equals("ORDERS")){
+                        log.info("Subscribed to orders");
+                        subscribedToOrders = true;
+                        if (!subscribedToCandles && reconnecting){
+                            subscribeToCandles();
+                        }
+                    }else if(jo.get("name").equals("CANDLESTICKS")){
+                        log.info("Subscribed to candles");
+                        subscribedToCandles = true;
+                        reconnecting = false;
+                    }
+                }
+            }
+            else if(type.equals("AUTHENTICATED")){
+                authenticated = true;
+                if(!subscribedToOrders && reconnecting){
+                    subscribeToOrders();
                 }
             }
             return null;

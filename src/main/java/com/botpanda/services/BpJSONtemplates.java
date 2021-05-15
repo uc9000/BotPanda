@@ -67,6 +67,10 @@ public class BpJSONtemplates {
         return gson.fromJson(candleJSON, BpCandlestick.class);
     }
 
+    public Order parseOrder(String orderJSON){
+        return gson.fromJson(orderJSON, Order.class);
+    }
+
     public List<BpCandlestick> parseCandleList(String candleListJSON){
         JSONArray ja = new JSONArray(candleListJSON);
         List<BpCandlestick> list = new ArrayList<BpCandlestick>();
@@ -91,7 +95,7 @@ public class BpJSONtemplates {
         if(precision == 0){
             strAmount = String.valueOf((int)amount);
         }else{
-            strAmount = String.valueOf(bd.doubleValue());
+            strAmount = bd.toPlainString();
         }
         String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), strAmount));
         JSONObject order = new JSONObject(strOrder);
