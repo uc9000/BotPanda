@@ -1,6 +1,10 @@
 package com.botpanda.services;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 
 import com.botpanda.entities.BpCandlestick;
@@ -14,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BotLogic {
     @Setter @Getter
-    private double minRsi, maxRsi, safetyFactor;
+    private double cryptoBalance = 0;
     @Getter
     private double lastRs, lastAvgLoss, lastAvgGain, lastClosing, buyingPrice = 0, sellingPrice = 0, boughtFor = 0;
     @Setter @Getter
@@ -28,25 +32,11 @@ public class BotLogic {
     @Setter
     BotSettings settings = new BotSettings();
     @Getter
-    double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
+    private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
     //Constructors:
     public BotLogic(){
-        minRsi = 30;
-        maxRsi = 70;
-        safetyFactor = 5;
-        candleList = new ArrayList<BpCandlestick>();
-    }
-
-    public BotLogic(double min, double max){
-        this();
-        minRsi = min;
-        maxRsi = max;
-    }
-
-    public BotLogic(double min, double max, double safetyFactor){
-        this(min, max);
-        this.safetyFactor = safetyFactor;
+        candleList = new ArrayList<BpCandlestick>(settings.getMaxCandles());
     }
 
     private double RS(){
@@ -77,26 +67,26 @@ public class BotLogic {
         return this.lastRs;
     }
 
-    public double RSI(){
-        if (candleList.size() < safetyFactor){
+    public double calcRSI(){
+        if (candleList.size() < settings.getSafetyFactor()){
             return 50;
         }
         double result = 100 - (100 / (1 + RS()));
+        return result;
+    }
+    
+    public double RSI(){
+        double result = calcRSI();
         rsiList.add(result);
-        while(rsiList.size() > safetyFactor + 1){
+        while(rsiList.size() > settings.getSafetyFactor() + 1){
             rsiList.remove(0);
         }
         log.info("RSI list:\n" + rsiList.toString());
         return result;
-    }       
+    }
 
     public boolean shouldBuy(){
-        for (int i = 1; i < rsiList.size(); i++){
-            if (shouldSell(i)){
-                return false;
-            }
-        }
-        if(!shouldBuy(rsiList.size())){
+        if(isCrashing() || !shouldBuy(rsiList.size())){
             return false;
         }
         buyingPrice = lastClosing;
@@ -113,11 +103,11 @@ public class BotLogic {
         else if(lastElements < 2){
             lastElements = 2;
         }
-        if(rsiList.get(rsiList.size() - lastElements) > minRsi || bought){
+        if(rsiList.get(rsiList.size() - lastElements) > settings.getRsiMin() || bought){
             return false;
         }
         for (int i = rsiList.size() - lastElements + 1; i < rsiList.size(); i++){
-            if (rsiList.get(i) < minRsi){
+            if (rsiList.get(i) < settings.getRsiMin() || rsiList.get(i) > settings.getRsiMax() - settings.getSafetyFactor()){
                 return false;
             }
         }
@@ -149,11 +139,11 @@ public class BotLogic {
         }else if(lastElements < 2){
             lastElements = 2;
         }
-        if(rsiList.get(rsiList.size() - lastElements) < maxRsi || !bought){
+        if(rsiList.get(rsiList.size() - lastElements) < settings.getRsiMax() || !bought){
             return false;
         }
         for (int i = rsiList.size() - lastElements + 1; i < rsiList.size() && i >= 0; i++){
-            if (rsiList.get(i) > maxRsi){
+            if (rsiList.get(i) > settings.getRsiMax()){
                 return false;
             }
         }
@@ -169,13 +159,13 @@ public class BotLogic {
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
         }
-        if(candleList.size() > safetyFactor){
+        if(candleList.size() >= settings.getRsiLength()){
             RSI();
         }
         if(bought){
             gainList.add(currentGain());
         }
-        while (gainList.size() > safetyFactor){
+        while (gainList.size() > settings.getSafetyFactor()){
             gainList.remove(0);
         }
     }
@@ -203,7 +193,7 @@ public class BotLogic {
         return rsiList.get(rsiList.size()-1);
     }
 
-    public double gain(double before, double after){
+    public static double gain(final double before, final double after){
         return (((1 - TAKER_FEE) * after) - ((1 + MAKER_FEE) * before))/before;
     }
 
@@ -216,12 +206,18 @@ public class BotLogic {
         if (amount > settings.getCryptoPriceLimit()){
             amount = settings.getCryptoPriceLimit();
         }
-        boughtFor = amount;
+        BigDecimal bd = new BigDecimal(amount * (1 - TAKER_FEE)).setScale(settings.getFromCurrency().getAmountPrecision(), RoundingMode.DOWN);
+        boughtFor = bd.doubleValue();
         return amount;
     }
 
+    public double amountToSell(){
+        BigDecimal bd = new BigDecimal(boughtFor * (1 - MAKER_FEE)).setScale(settings.getFromCurrency().getAmountPrecision(), RoundingMode.DOWN);
+        return bd.doubleValue();
+    }
+
     public boolean targetReached(int lastElements){
-        if(lastElements < 1 || gainList.size() < safetyFactor){
+        if(lastElements < 1 || gainList.size() < settings.getSafetyFactor()){
             return false;
         }
         if(lastElements >= gainList.size()){
@@ -236,7 +232,7 @@ public class BotLogic {
     }
 
     public boolean stopLossReached(int lastElements){
-        if(lastElements < 1 || gainList.size() < safetyFactor){
+        if(lastElements < 1 || gainList.size() < settings.getSafetyFactor()){
             return false;
         }
         if(lastElements >= gainList.size()){
@@ -248,5 +244,26 @@ public class BotLogic {
             }
         }
         return true;
+    }
+
+    public boolean isCrashing(){
+        LinkedList <Double> first = new LinkedList<Double>();
+        LinkedList <Double> last = new LinkedList<Double>();
+        for(int i = 0; i < 9 && i < candleList.size(); i++){
+            first.add(candleList.get(i).getClose());
+            last.add(candleList.get(candleList.size() - 1 - i).getClose());
+        }
+        Collections.sort(first);
+        Collections.sort(last);
+        double firstMedian, lastMedian;
+        firstMedian = first.get(first.size()/2);
+        lastMedian = last.get(last.size()/2);
+        double longGain = gain(firstMedian, lastMedian);
+        log.debug("Long gain: " + longGain + " ; f median = " + firstMedian + " ; l median = " + lastMedian);
+        if(longGain < (-1 * settings.getCrashIndicator())){
+            log.info("Is crashing!");
+            return true;
+        }
+        return false;
     }
 }

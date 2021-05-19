@@ -20,6 +20,7 @@ public class BpCandlestick {
     }
 
     public BpCandlestick(double close){
+        this();
         this.close = close;
     }
 }

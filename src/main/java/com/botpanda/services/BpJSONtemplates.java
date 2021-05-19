@@ -105,4 +105,31 @@ public class BpJSONtemplates {
         log.debug(json.toString(4));
         return json.toString();
     }
+
+    /*
+    public String subscriptionToAccountHistory(){
+        JSONObject jo = new JSONObject();
+        jo
+        .put("type", "SUBSCRIBE")
+        .put("bp_remaining_quota", 200)
+        .put("channels", new JSONArray()
+            .put(new JSONObject().put("name", "ACCOUNT_HISTORY"))
+        );
+        output = jo.toString();
+        log.debug(output);
+        return output;
+    }
+
+    public Balance parseBalance(String balanceJSON, Currency currency){
+        JSONArray balances = new JSONObject(balanceJSON).getJSONArray("balances");
+        for(int i = 0; i < balances.length(); i++){
+            Balance b = gson.fromJson(balances.get(i).toString(), Balance.class);
+            if(b.getCurrencyCode().equals(currency.name())){
+                log.info("balance: " + b.getAvailable());
+                return b;
+            }
+        }
+        return new Balance();
+    }
+    */
 }

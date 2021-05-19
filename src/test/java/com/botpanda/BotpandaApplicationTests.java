@@ -1,5 +1,6 @@
 package com.botpanda;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import com.botpanda.services.BpJSONtemplates;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,11 +26,21 @@ import lombok.extern.slf4j.Slf4j;
 @SpringBootTest
 class BotpandaApplicationTests {
 	@Autowired
-	BpConnectivity con;
-	BotLogic bl = new BotLogic();
+	private BpConnectivity con;
+	private static BotLogic bl = new BotLogic();	
 	@Autowired
-	BpJSONtemplates js;
-	BotSettings settings;
+	private BpJSONtemplates js;
+	private static BotSettings settings;
+
+	@BeforeAll
+	public static void init(){
+		settings = new BotSettings();
+		bl.setSettings(settings);
+		double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65};
+		for(double c : blArr){
+			bl.addCandle(new BpCandlestick(c));
+		}
+	}
 
 	@Test	
 	void parseFromJsonTest() throws InterruptedException {
@@ -53,22 +65,9 @@ class BotpandaApplicationTests {
 
 	@Test
 	void rsiCalcTest(){
-		//given
-		settings = new BotSettings();	
-		settings.setMaxCandles(8);
-		bl.setSettings(settings);
-		bl.addCandle(new BpCandlestick(100));
-		bl.addCandle(new BpCandlestick(100));
-		bl.addCandle(new BpCandlestick(110));
-		bl.addCandle(new BpCandlestick(125));
-		bl.addCandle(new BpCandlestick(110));
-		bl.addCandle(new BpCandlestick(100));
-		bl.addCandle(new BpCandlestick(90));
-		bl.addCandle(new BpCandlestick(80));
-		bl.addCandle(new BpCandlestick(65));
 		//when
 		int expectedRsi = (int)29.41f;
-		int rsi =  (int)bl.getLastRsi();
+		int rsi =  (int)bl.calcRSI();
 		log.info("candleList of size: " + bl.getCandleList().size() + "\n = " + bl.getCandleList());
 		log.info("rsi = " + rsi + " and expected = " + expectedRsi);
 		log.info("RS = " + bl.getLastRs() + " ; avg loss = " + bl.getLastAvgLoss() + " and avg gain = " + bl.getLastAvgGain());
@@ -87,4 +86,48 @@ class BotpandaApplicationTests {
 		assert(order.get("type")).equals("MARKET");
 		assert(order.get("amount")).equals("43.91234");
 	}
+
+	@Test
+	void isCrashingTest(){
+		BotLogic botCrashing = new BotLogic();
+		double crashingArr[] = 
+		{
+			100, 178, 76, 125, 110, 100, 101, 99, 112, 107,
+			98, 88, 80, 65, 76, 45, 55, 70, 50, 55, 90, 45
+		};
+		for(double c : crashingArr){
+			botCrashing.addCandle(new BpCandlestick(c));
+		}
+		assertTrue(botCrashing.isCrashing());
+	}
+
+	@Test
+	void isNotCrashingTest(){
+		BotLogic botNotCrashing = new BotLogic();
+		double crashingArr[] = 
+		{
+			98, 88, 80, 65, 76, 45, 55, 70, 50, 55, 90, 45,
+			100, 178, 76, 125, 110, 100, 101, 99, 112, 107			
+		};
+		for(double c : crashingArr){
+			botNotCrashing.addCandle(new BpCandlestick(c));
+		}
+		assertFalse(botNotCrashing.isCrashing());
+	}
+
+	/*
+	@Test
+	void parseBalanceTest(){
+		String jsStr = new String();
+		ClassLoader classLoader = getClass().getClassLoader();
+		File file = new File(classLoader.getResource("balancesSnapshotJSON.test").getFile());            
+		try {
+			jsStr = new String(Files.readAllBytes(file.toPath()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Balance b = js.parseBalance(jsStr, Currency.XRP);
+		assert(b).getAvailable().equals("0.976");
+	}
+	*/
 }

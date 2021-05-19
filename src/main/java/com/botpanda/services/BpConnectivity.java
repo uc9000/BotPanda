@@ -35,7 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BpConnectivity {
     @Getter
-    private boolean connected = false, authenticated = false,  subscribedToOrders = false, subscribedToCandles = false, reconnecting = false; 
+    private boolean connected = false,
+    authenticated = false,
+    subscribedToOrders = false,
+    subscribedToCandles = false,
+    //subscribedToAccountHistory = false,
+    reconnecting = false;
     private BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
 
@@ -79,6 +84,7 @@ public class BpConnectivity {
             subscribedToOrders = false;
             authenticated = false;
             subscribedToCandles = false;
+            //subscribedToAccountHistory = false;
             reconnecting = true;
             connect();            
             return null;
@@ -113,10 +119,9 @@ public class BpConnectivity {
                     if(settings.isTestingMode()){
                         botLogic.setBought(true);
                     }
-                    
                 }
                 else if(botLogic.shouldSell()){
-                    sendMarketOrder(OrderSide.SELL, botLogic.getBoughtFor());
+                    sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
                     log.warn(
                         "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
                         + " at price: " + botLogic.getSellingPrice() 
@@ -152,7 +157,8 @@ public class BpConnectivity {
                         if (!subscribedToCandles && reconnecting){
                             subscribeToCandles();
                         }
-                    }else if(jo.get("name").equals("CANDLESTICKS")){
+                    }
+                    else if(jo.get("name").equals("CANDLESTICKS")){
                         log.info("Subscribed to candles");
                         subscribedToCandles = true;
                         reconnecting = false;
@@ -165,6 +171,9 @@ public class BpConnectivity {
                     subscribeToOrders();
                 }
             }
+            // else if(type.equals("BALANCES_SNAPSHOT")){
+            //     botLogic.setCryptoBalance(Double.parseDouble(jsonTemplate.parseBalance(strMsg, settings.getFromCurrency()).getAvailable()));
+            // }
             return null;
         }
     };
@@ -253,6 +262,17 @@ public class BpConnectivity {
             true
         );
     }
+
+    // public void subscribeToAccountHistory(){
+    //     if(!authenticated){
+    //         log.warn("Can't subscribe to History, not authenticated yet");
+    //         return;
+    //     }
+    //     ws.sendText(
+    //         jsonTemplate.subscriptionToAccountHistory(),
+    //         true
+    //     );
+    // }
 
     public void sendMarketOrder(OrderSide side, double amount){
         if(!subscribedToOrders){
