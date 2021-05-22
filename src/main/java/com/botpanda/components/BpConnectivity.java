@@ -110,26 +110,29 @@ public class BpConnectivity {
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
                 if(botLogic.shouldBuy()){
-                    sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
+                    if(!settings.isTestingMode()){
+                        sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
+                    }
                     log.warn(
                         "BUYING " + botLogic.getBoughtFor() + " " 
                         + settings.getFromCurrency().name() + " at price: " 
                         + botLogic.getBuyingPrice()
                     );
-                    if(settings.isTestingMode()){
-                        botLogic.setBought(true);
-                    }
+                    
+                    botLogic.setBought(true);
+                    
                 }
                 else if(botLogic.shouldSell()){
-                    sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
+                    if(!settings.isTestingMode()){
+                        sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
+                    }
                     log.warn(
                         "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
-                        + " at price: " + botLogic.getSellingPrice() 
+                        + " at price: " + botLogic.getLastClosing()
                         + "  with gain [%] : " + 100 * botLogic.currentGain()
                     );
-                    if(settings.isTestingMode()){
-                        botLogic.setBought(false);
-                    }
+                    botLogic.setBought(false);
+                    
                 }
                 else if (botLogic.isBought()){
                     log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());

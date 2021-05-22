@@ -1,4 +1,4 @@
-package com.botpanda.services;
+package com.botpanda.components;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -41,12 +41,15 @@ public class BotLogic {
 
     private double RS(){
         double up = 0, down = 0;
-        int i=0;
+        int cnt=0;
         double prevClose = 0;
-        for(BpCandlestick candle : candleList){
-            if (i == 0){
+        int start = candleList.size() - settings.getRsiLength() - 1;
+        start = (start < 0) ? 0 : start;
+        for(int i = start; i < candleList.size(); i++){
+            BpCandlestick candle = candleList.get(i);
+            if (cnt == 0){
                 prevClose = candle.getClose();
-                i++;
+                cnt++;
                 continue;
             }
             double close = candle.getClose();
@@ -59,10 +62,10 @@ public class BotLogic {
             }
             log.trace("close : " + close + " ; prevClose: " + prevClose);
             prevClose = close;
-            i++;
+            cnt++;
         }
-        lastAvgGain = up/(i - 1);
-        lastAvgLoss = down/(i - 1);
+        lastAvgGain = up/(cnt - 1);
+        lastAvgLoss = down/(cnt - 1);
         this.lastRs = lastAvgGain/lastAvgLoss;
         return this.lastRs;
     }
@@ -259,9 +262,9 @@ public class BotLogic {
         firstMedian = first.get(first.size()/2);
         lastMedian = last.get(last.size()/2);
         double longGain = gain(firstMedian, lastMedian);
-        log.debug("Long gain: " + longGain + " ; f median = " + firstMedian + " ; l median = " + lastMedian);
+        log.debug("f median = " + firstMedian + " ; l median = " + lastMedian);
         if(longGain < (-1 * settings.getCrashIndicator())){
-            log.info("Is crashing!");
+            log.info("Is crashing! ; long gain: " + longGain * 100 + "%");
             return true;
         }
         return false;

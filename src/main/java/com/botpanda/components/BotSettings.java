@@ -27,18 +27,18 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.DOGE;
+        fromCurrency = Currency.LINK;
         toCurrency = Currency.EUR;
         maxCandles = 60; //must be min 15
         safetyFactor = 4;
-        fiatPriceLimit = 20;
+        fiatPriceLimit = 15;
         cryptoPriceLimit = 500;
         stopLoss = 0.01;
-        target = 0.03;
+        target = 0.04;
         rsiMin = 25;
         rsiMax = 75;
         rsiLength = 15;
-        crashIndicator = 0.05;
+        crashIndicator = 0.12;
         if(rsiLength >= maxCandles){
             maxCandles = rsiLength + 1;
         }
