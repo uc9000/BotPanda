@@ -1,6 +1,5 @@
 package com.botpanda;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -35,8 +34,10 @@ class BotpandaApplicationTests {
 	@BeforeAll
 	public static void init(){
 		settings = new BotSettings();
+		settings.setMaxCandles(20);
 		bl.setSettings(settings);
 		bl.rsi.setRsiLength(8);
+		bl.ema.setEmaLength(5);
 		double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65};
 		for(double c : blArr){
 			bl.addCandle(new BpCandlestick(c));
@@ -70,10 +71,23 @@ class BotpandaApplicationTests {
 		int expectedvalue = (int)29.41f;
 		int value =  (int)bl.rsi.calc().doubleValue();
 		log.info("candleList of size: " + bl.getCandleList().size() + "\n = " + bl.getCandleList());
-		log.info("values list in RSI: " + bl.rsi.getValues().toString());
 		log.info("value = " + value + " and expected = " + expectedvalue);
 		log.info("RS = " + bl.rsi.getLastRs() + " ; avg loss = " + bl.rsi.getLastAvgLoss() + " and avg gain = " + bl.rsi.getLastAvgGain());
 		//then
+		assertTrue(value == expectedvalue);
+	}
+
+	@Test
+	void emaCalcTest(){
+		//when
+		int expectedvalue = 84;
+		int value =  (int)bl.ema.getLast().doubleValue();
+		//then
+		// double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65, 95, 29,46,6,3,54,656,32,455,66,22,33,55,66,33,99};
+		// for(double c : blArr){
+		// 	bl.addCandle(new BpCandlestick(c));
+		// }
+		log.info("EMA = " + value);
 		assertTrue(value == expectedvalue);
 	}
 
@@ -89,6 +103,7 @@ class BotpandaApplicationTests {
 		assert(order.get("amount")).equals("43.91234");
 	}
 
+	/*
 	@Test
 	void isCrashingTest(){
 		BotLogic botCrashing = new BotLogic();
@@ -116,6 +131,8 @@ class BotpandaApplicationTests {
 		}
 		assertFalse(botNotCrashing.isCrashing());
 	}
+
+	*/
 
 	/*
 	@Test

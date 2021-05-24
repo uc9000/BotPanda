@@ -24,19 +24,20 @@ public class BotSettings {
     private int rsiListLength;
     private double crashIndicator;
     private Strategy strategy;
+    private int emaLength;
 
     //default settings
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.LINK;
+        fromCurrency = Currency.BTC;
         toCurrency = Currency.EUR;
-        maxCandles = 60; //must be min 15
-        safetyFactor = 4;
+        maxCandles = 200; //must be min 15
+        safetyFactor = 3;
         fiatPriceLimit = 15;
         cryptoPriceLimit = 500;
-        stopLoss = 0.01;
-        target = 0.04;
+        stopLoss = 0.008;
+        target = 0.016;
         rsiMin = 25;
         rsiMax = 75;
         rsiLength = 15;
@@ -45,5 +46,6 @@ public class BotSettings {
             maxCandles = rsiLength + 1;
         }
         strategy = Strategy.RSI_AND_EMA;
+        emaLength = 60;
     }
 }

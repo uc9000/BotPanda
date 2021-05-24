@@ -3,10 +3,9 @@ package com.botpanda.components;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 
+import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.components.indicators.RelativeStrenghtIndex;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Strategy;
@@ -26,7 +25,7 @@ public class BotLogic {
     @Setter @Getter
     private boolean bought = false;
     @Getter
-    private ArrayList <BpCandlestick> candleList;
+    private ArrayList <BpCandlestick> candleList  = new ArrayList<BpCandlestick>();
     private ArrayList <Double> values = new ArrayList<Double>();
     @Getter
     private ArrayList <Double> gainList = new ArrayList<Double>();
@@ -36,22 +35,30 @@ public class BotLogic {
     private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
     public RelativeStrenghtIndex rsi = new RelativeStrenghtIndex();
+    public ExponentialMovingAverage ema = new ExponentialMovingAverage();
 
     //Constructors:
     public BotLogic(){
-        candleList = new ArrayList<BpCandlestick>(settings.getMaxCandles());
-        rsi.setLastElements((int)settings.getSafetyFactor());
+        rsi.setLastElements((int) new BotSettings().getSafetyFactor());
         rsi.setValues(values);
+        ema.setValues(values);
+    }
+    
+    public BotLogic(BotSettings settings){
+        this();
+        this.settings = settings;
+        rsi.setLastElements((int)settings.getSafetyFactor());        
     }
 
     public boolean shouldBuy(){
-        if(isCrashing()){
-            return false;
-        }
+        // if(isCrashing()){
+        //     return false;
+        // }
         if(settings.getStrategy().equals(Strategy.RSI_AND_EMA)){
-            if(!rsi.shouldBuy()){
-                return false;
+            if(rsi.shouldBuy() && ema.shouldBuy()){
+                return true;
             }
+            return false;
         }
         else if(settings.getStrategy().equals(Strategy.MACD_AND_EMA)){
             //TODO: MACD
@@ -68,16 +75,17 @@ public class BotLogic {
             return true;
         }
         if(settings.getStrategy().equals(Strategy.RSI_AND_EMA)){
-            if(!rsi.shouldSell()){
-                return false;
+            if(rsi.shouldSell() && ema.shouldSell()){
+                return true;
             }
+            return false;
         }
         else if(settings.getStrategy().equals(Strategy.MACD_AND_EMA)){
             //TODO: MACD
         }
         sellingPrice = lastClosing;
         return true;
-    } 
+    }
 
     public void addCandle(BpCandlestick candle){
         log.info("Adding candle: " + candle.getClose());
@@ -88,6 +96,12 @@ public class BotLogic {
         if(candleList.size() > settings.getMaxCandles() + 1){
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
+        }
+        if(settings.getStrategy().equals(Strategy.RSI_AND_EMA)){
+            rsi.calc();
+            if(this.values.size() > settings.getEmaLength()){
+                ema.calc();
+            }
         }
         if(bought){
             gainList.add(currentGain());
@@ -165,6 +179,7 @@ public class BotLogic {
         return true;
     }
 
+    /*
     public boolean isCrashing(){
         LinkedList <Double> first = new LinkedList<Double>();
         LinkedList <Double> last = new LinkedList<Double>();
@@ -185,4 +200,5 @@ public class BotLogic {
         }
         return false;
     }
+    */
 }

@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RelativeStrenghtIndex implements Indicator{
     @Getter
     private ArrayList<Double> rsiList = new ArrayList<Double>();
-    @Setter @Getter
+    @Setter
     private ArrayList<Double> values = new ArrayList<Double>();
     @Setter @Getter
     private int rsiListMaxLength = 8, rsiLength = 15, lastElements = 3;
@@ -59,6 +59,7 @@ public class RelativeStrenghtIndex implements Indicator{
         if(rsiList.size() > rsiListMaxLength){
             rsiList.remove(0);
         }
+        log.info("RSI list =\n" + rsiList);
         return result;
     }
 
