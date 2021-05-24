@@ -5,13 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
+import com.botpanda.components.BotLogic;
+import com.botpanda.components.BotSettings;
+import com.botpanda.components.BpConnectivity;
+import com.botpanda.components.BpJSONtemplates;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.OrderSide;
-import com.botpanda.services.BotLogic;
-import com.botpanda.services.BotSettings;
-import com.botpanda.services.BpConnectivity;
-import com.botpanda.services.BpJSONtemplates;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,6 +36,7 @@ class BotpandaApplicationTests {
 	public static void init(){
 		settings = new BotSettings();
 		bl.setSettings(settings);
+		bl.rsi.setRsiLength(8);
 		double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65};
 		for(double c : blArr){
 			bl.addCandle(new BpCandlestick(c));
@@ -66,13 +67,14 @@ class BotpandaApplicationTests {
 	@Test
 	void rsiCalcTest(){
 		//when
-		int expectedRsi = (int)29.41f;
-		int rsi =  (int)bl.calcRSI();
+		int expectedvalue = (int)29.41f;
+		int value =  (int)bl.rsi.calc().doubleValue();
 		log.info("candleList of size: " + bl.getCandleList().size() + "\n = " + bl.getCandleList());
-		log.info("rsi = " + rsi + " and expected = " + expectedRsi);
-		log.info("RS = " + bl.getLastRs() + " ; avg loss = " + bl.getLastAvgLoss() + " and avg gain = " + bl.getLastAvgGain());
+		log.info("values list in RSI: " + bl.rsi.getValues().toString());
+		log.info("value = " + value + " and expected = " + expectedvalue);
+		log.info("RS = " + bl.rsi.getLastRs() + " ; avg loss = " + bl.rsi.getLastAvgLoss() + " and avg gain = " + bl.rsi.getLastAvgGain());
 		//then
-		assertTrue(rsi == expectedRsi);
+		assertTrue(value == expectedvalue);
 	}
 
 	@Test

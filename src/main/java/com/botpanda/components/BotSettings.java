@@ -1,6 +1,7 @@
-package com.botpanda.services;
+package com.botpanda.components;
 
 import com.botpanda.entities.enums.Currency;
+import com.botpanda.entities.enums.Strategy;
 import com.botpanda.entities.enums.Unit;
 
 import lombok.Data;
@@ -22,6 +23,7 @@ public class BotSettings {
     private int rsiLength;
     private int rsiListLength;
     private double crashIndicator;
+    private Strategy strategy;
 
     //default settings
     public BotSettings(){
@@ -42,5 +44,6 @@ public class BotSettings {
         if(rsiLength >= maxCandles){
             maxCandles = rsiLength + 1;
         }
+        strategy = Strategy.RSI_AND_EMA;
     }
 }

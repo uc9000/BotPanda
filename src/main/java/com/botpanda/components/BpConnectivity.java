@@ -1,4 +1,4 @@
-package com.botpanda.services;
+package com.botpanda.components;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,4 +1,4 @@
-package com.botpanda.services;
+package com.botpanda.components;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
