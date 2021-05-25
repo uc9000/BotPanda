@@ -105,7 +105,7 @@ public class BpConnectivity {
             String strMsg = message.toString();
             String type = jsonTemplate.getJSONtype(strMsg);
             if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
-                log.info("received message: " + strMsg);
+                log.debug("received message: " + strMsg);
             }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
@@ -117,8 +117,7 @@ public class BpConnectivity {
                         "BUYING " + botLogic.getBoughtFor() + " " 
                         + settings.getFromCurrency().name() + " at price: " 
                         + botLogic.getBuyingPrice()
-                    );
-                    
+                    );                    
                     botLogic.setBought(true);
                     
                 }

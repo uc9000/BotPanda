@@ -13,7 +13,7 @@ public class BotSettings {
     private Unit unit;
     private int period, maxCandles;
     private boolean started = false;
-    private boolean testingMode = true;
+    private boolean testingMode = false;
     private double fiatPriceLimit; // Max trade amount of your default fiat currency (EUR or USD)
     private double cryptoPriceLimit; // Max trade amount of your crypto currency (BTC, ETH etc.)
     private double stopLoss; // Fraction of price you don't want to go below - 0.01 means it will sell when gain is below -1% of buying price
@@ -30,11 +30,11 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.BTC;
+        fromCurrency = Currency.XRP;
         toCurrency = Currency.EUR;
         maxCandles = 200; //must be min 15
         safetyFactor = 3;
-        fiatPriceLimit = 15;
+        fiatPriceLimit = 35;
         cryptoPriceLimit = 500;
         stopLoss = 0.008;
         target = 0.016;
@@ -45,7 +45,7 @@ public class BotSettings {
         if(rsiLength >= maxCandles){
             maxCandles = rsiLength + 1;
         }
-        strategy = Strategy.RSI_AND_EMA;
-        emaLength = 60;
+        strategy = Strategy.MACD_RSI_EMA;
+        emaLength = 120;
     }
 }

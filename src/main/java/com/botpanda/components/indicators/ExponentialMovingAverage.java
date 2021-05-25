@@ -15,7 +15,7 @@ public class ExponentialMovingAverage implements Indicator{
     @Setter
     private ArrayList<Double> values;
     @Setter @Getter
-    private int emaLength = 100, maxEmaListLength = 8;
+    private int emaLength = 100, maxEmaListLength = 3;
 
     private Double currentEma(Double close, Double previous){
         if(values.size() < 2){
@@ -35,8 +35,7 @@ public class ExponentialMovingAverage implements Indicator{
     }
 
     @Override
-    public Double calc(){ 
-        log.debug("ema calc()");       
+    public Double calc(){      
         if(emaList.size() == 0){
             last = simpleAverage();
             emaList.add(last);
@@ -46,13 +45,14 @@ public class ExponentialMovingAverage implements Indicator{
         if(emaList.size() > maxEmaListLength){
             emaList.remove(0);
         }
-        log.info("EMA list =\n" + emaList);        
+        log.trace("EMA list =\n" + emaList);        
         return last;
     }
 
     @Override
     public boolean shouldBuy() {
         if(values.get(values.size() - 1) > last){
+            log.debug("BUY signal EMA");
             return true;
         }
         return false;
@@ -62,6 +62,7 @@ public class ExponentialMovingAverage implements Indicator{
         if(values.get(values.size() - 1) > last){
             return false;
         }
+        log.debug("SELL signal EMA");
         return true;
     }
 }

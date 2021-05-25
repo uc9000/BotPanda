@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.botpanda.components.indicators.ExponentialMovingAverage;
+import com.botpanda.components.indicators.MACD;
 import com.botpanda.components.indicators.RelativeStrenghtIndex;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Strategy;
@@ -18,8 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 // @Scope(value = "prototype")
 @Slf4j
 public class BotLogic {
-    @Setter @Getter
-    private double cryptoBalance = 0;
     @Getter
     private double lastClosing, buyingPrice = 0, sellingPrice = 0, boughtFor = 0;
     @Setter @Getter
@@ -30,38 +29,47 @@ public class BotLogic {
     @Getter
     private ArrayList <Double> gainList = new ArrayList<Double>();
     @Setter
-    BotSettings settings = new BotSettings();
+    BotSettings settings;
     @Getter
     private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
     public RelativeStrenghtIndex rsi = new RelativeStrenghtIndex();
     public ExponentialMovingAverage ema = new ExponentialMovingAverage();
+    public MACD macd = new MACD();
+
+
 
     //Constructors:
     public BotLogic(){
-        rsi.setLastElements((int) new BotSettings().getSafetyFactor());
         rsi.setValues(values);
         ema.setValues(values);
+        macd.setValues(values);
     }
     
     public BotLogic(BotSettings settings){
         this();
         this.settings = settings;
-        rsi.setLastElements((int)settings.getSafetyFactor());        
+        rsi.setLastElements((int)settings.getSafetyFactor());
     }
 
     public boolean shouldBuy(){
         // if(isCrashing()){
         //     return false;
         // }
-        if(settings.getStrategy().equals(Strategy.RSI_AND_EMA)){
-            if(rsi.shouldBuy() && ema.shouldBuy()){
-                return true;
-            }
+        if (bought){
             return false;
         }
-        else if(settings.getStrategy().equals(Strategy.MACD_AND_EMA)){
-            //TODO: MACD
+        if(settings.getStrategy().isUsingEma() && !ema.shouldBuy()){
+            return false;
+        }
+        if(settings.getStrategy().equals(Strategy.RSI_AND_EMA) && !rsi.shouldBuy()){
+            return false;            
+        }
+        if(settings.getStrategy().isUsingMacd() && !macd.shouldBuy()){
+            return false;
+        }
+        else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() < 50){
+            return false;
         }
         buyingPrice = lastClosing;
         return true;
@@ -72,16 +80,20 @@ public class BotLogic {
             return false;
         }
         if(targetReached(1) || stopLossReached((int)settings.getSafetyFactor())){
+            sellingPrice = lastClosing;
             return true;
         }
-        if(settings.getStrategy().equals(Strategy.RSI_AND_EMA)){
-            if(rsi.shouldSell() && ema.shouldSell()){
-                return true;
-            }
+        if(settings.getStrategy().isUsingEma() && !ema.shouldSell()){
             return false;
         }
-        else if(settings.getStrategy().equals(Strategy.MACD_AND_EMA)){
-            //TODO: MACD
+        if(settings.getStrategy().equals(Strategy.RSI_AND_EMA) && !rsi.shouldSell()){
+            return false;            
+        }
+        if(settings.getStrategy().isUsingMacd() && !macd.shouldSell()){
+            return false;
+        }
+        else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() > 50){
+            return false;
         }
         sellingPrice = lastClosing;
         return true;
@@ -97,11 +109,14 @@ public class BotLogic {
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
         }
-        if(settings.getStrategy().equals(Strategy.RSI_AND_EMA)){
+        if(settings.getStrategy().isUsingRsi() && values.size() > rsi.getRsiLength()){
             rsi.calc();
-            if(this.values.size() > settings.getEmaLength()){
-                ema.calc();
-            }
+        }
+        if(settings.getStrategy().isUsingEma() && values.size() > ema.getEmaLength()){
+            ema.calc();
+        }
+        if(settings.getStrategy().isUsingMacd() && values.size() > macd.getSlowLength()){
+            macd.calc();
         }
         if(bought){
             gainList.add(currentGain());
@@ -121,7 +136,7 @@ public class BotLogic {
     public BpCandlestick getLastCandle(){
         if (candleList.size() < 1){
             log.debug("List is empty!");
-            return new BpCandlestick();
+            return null;
         }
         return candleList.get(candleList.size()-1);
     }
