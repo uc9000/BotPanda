@@ -30,11 +30,11 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.XRP;
+        fromCurrency = Currency.ETH;
         toCurrency = Currency.EUR;
         maxCandles = 200; //must be min 15
         safetyFactor = 3;
-        fiatPriceLimit = 35;
+        fiatPriceLimit = 30;
         cryptoPriceLimit = 500;
         stopLoss = 0.008;
         target = 0.016;

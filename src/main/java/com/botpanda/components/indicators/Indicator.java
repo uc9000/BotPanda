@@ -8,4 +8,5 @@ public interface Indicator {
     public boolean shouldSell();
     public void setValues(ArrayList<Double> values);
     public Double getLast();
+    public void clear();
 }

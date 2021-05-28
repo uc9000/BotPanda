@@ -28,7 +28,6 @@ public class BotLogic {
     private ArrayList <Double> values = new ArrayList<Double>();
     @Getter
     private ArrayList <Double> gainList = new ArrayList<Double>();
-    @Setter
     BotSettings settings;
     @Getter
     private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
@@ -46,10 +45,16 @@ public class BotLogic {
         macd.setValues(values);
     }
     
-    public BotLogic(BotSettings settings){
-        this();
+    public void setSettings(BotSettings settings){
         this.settings = settings;
         rsi.setLastElements((int)settings.getSafetyFactor());
+        rsi.setRsiLength(settings.getRsiLength());
+        ema.setEmaLength(settings.getEmaLength());
+    }
+
+    public BotLogic(BotSettings settings){
+        this();
+        setSettings(settings);
     }
 
     public boolean shouldBuy(){
@@ -100,7 +105,8 @@ public class BotLogic {
     }
 
     public void addCandle(BpCandlestick candle){
-        log.info("Adding candle: " + candle.getClose());
+        StringBuilder strategyLogMsg = new StringBuilder();
+        strategyLogMsg.append("Adding candle: " + candle.getClose());
         lastClosing = candle.getClose();
         this.values.add(lastClosing);
         this.candleList.add(candle);
@@ -108,16 +114,22 @@ public class BotLogic {
         if(candleList.size() > settings.getMaxCandles() + 1){
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
+            this.values.remove(0);
         }
+        
         if(settings.getStrategy().isUsingRsi() && values.size() > rsi.getRsiLength()){
             rsi.calc();
+            strategyLogMsg.append(" RSI = " + String.format("%1f", rsi.getLast()));
         }
-        if(settings.getStrategy().isUsingEma() && values.size() > ema.getEmaLength()){
+        if(settings.getStrategy().isUsingEma()){
             ema.calc();
+            strategyLogMsg.append(" EMA " + ema.getEmaLength() + " = " + String.format("%4f", ema.getLast()));
         }
-        if(settings.getStrategy().isUsingMacd() && values.size() > macd.getSlowLength()){
+        if(settings.getStrategy().isUsingMacd()){
             macd.calc();
+            strategyLogMsg.append("\nMACD = " + macd.getLast() + " Histo = " + macd.getLastHistogram() + " signal = " + macd.getLastSignal());
         }
+        log.info(strategyLogMsg.toString());
         if(bought){
             gainList.add(currentGain());
         }
@@ -142,7 +154,7 @@ public class BotLogic {
     }
 
     public static double gain(final double before, final double after){
-        return (((1 - TAKER_FEE) * after) - ((1 + MAKER_FEE) * before))/before;
+        return (after - before) / before;
     }
 
     public double currentGain(){
@@ -194,26 +206,9 @@ public class BotLogic {
         return true;
     }
 
-    /*
-    public boolean isCrashing(){
-        LinkedList <Double> first = new LinkedList<Double>();
-        LinkedList <Double> last = new LinkedList<Double>();
-        for(int i = 0; i < 9 && i < candleList.size(); i++){
-            first.add(candleList.get(i).getClose());
-            last.add(candleList.get(candleList.size() - 1 - i).getClose());
-        }
-        Collections.sort(first);
-        Collections.sort(last);
-        double firstMedian, lastMedian;
-        firstMedian = first.get(first.size()/2);
-        lastMedian = last.get(last.size()/2);
-        double longGain = gain(firstMedian, lastMedian);
-        log.debug("f median = " + firstMedian + " ; l median = " + lastMedian);
-        if(longGain < (-1 * settings.getCrashIndicator())){
-            log.info("Is crashing! ; long gain: " + longGain * 100 + "%");
-            return true;
-        }
-        return false;
+    public void clearAll(){
+        rsi.clear();
+        macd.clear();
+        ema.clear();
     }
-    */
 }

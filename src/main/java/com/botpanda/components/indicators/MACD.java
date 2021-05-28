@@ -45,26 +45,22 @@ public class MACD implements Indicator{
     }
 
     @Override
-    public Double calc() {
-        Double fast = 1.0;
-        if(values.size() > fastLength){
-            fast = fastEma.calc();
-        }
+    public Double calc() {    
+        last = fastEma.calc() - slowEma.calc();
         if(values.size() > slowLength){
-            last = fast - slowEma.calc();
             macd.add(last);
         }
-        if(macd.size() > signalLength){
-            lastSignal = signalEma.calc();
-            signal.add(lastSignal);
-            lastHistogram = last - lastSignal;
+        lastSignal = signalEma.calc();
+        lastHistogram = last - lastSignal;
+        if(macd.size() > signalLength){            
+            signal.add(lastSignal);            
             histogram.add(lastHistogram);
         }        
         if(histogram.size() > listLength){
             signal.remove(0);
             histogram.remove(0);
         }
-        if(macd.size() > signalLength + 1){
+        if(macd.size() > signalLength + 2){
             macd.remove(0);
         }
         log.debug("histogram list = \n" + histogram);
@@ -94,5 +90,12 @@ public class MACD implements Indicator{
         this.values = values;
         fastEma.setValues(values);
         slowEma.setValues(values);        
+    }
+
+    @Override
+    public void clear() {
+        macd.clear();
+        signal.clear();
+        histogram.clear();        
     }
 }

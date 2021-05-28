@@ -75,6 +75,7 @@ public class BpConnectivity {
             connected = true;
             webSocket.request(1);
             log.info("\nOPENED with subprotocol: " + webSocket.getSubprotocol());
+            botLogic.clearAll();
         }
 
         @Override
@@ -104,8 +105,8 @@ public class BpConnectivity {
             }
             String strMsg = message.toString();
             String type = jsonTemplate.getJSONtype(strMsg);
-            if(!type.equals("HEARTBEAT")){ // print everything except heartbeats
-                log.debug("received message: " + strMsg);
+            if(!type.equals("HEARTBEAT") && !type.equals("CANDLESTICK")){ // print everything except heartbeats
+                log.info("received message: " + new JSONObject(strMsg).toString(4));
             }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));

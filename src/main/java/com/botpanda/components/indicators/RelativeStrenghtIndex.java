@@ -102,4 +102,9 @@ public class RelativeStrenghtIndex implements Indicator{
         }
         return null;       
     }
+
+    @Override
+    public void clear() {
+        rsiList.clear();        
+    }
 }

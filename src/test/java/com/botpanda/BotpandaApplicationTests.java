@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 class BotpandaApplicationTests {
 	@Autowired
 	private BpConnectivity con;
-	private static BotLogic bl = new BotLogic();	
+	private static BotLogic bl = new BotLogic();
 	@Autowired
 	private BpJSONtemplates js;
 	private static BotSettings settings;
@@ -44,7 +44,7 @@ class BotpandaApplicationTests {
 		}
 	}
 
-	@Test	
+	@Test
 	void parseFromJsonTest() throws InterruptedException {
 		//given
 		settings = new BotSettings();
@@ -62,7 +62,7 @@ class BotpandaApplicationTests {
 			assert(list.toString()).equals(bl.getCandleList().toString());
 		}else{
 			assertTrue(bl.getCandleList().size() == settings.getMaxCandles() + 1);
-		}		
+		}
 	}
 
 	@Test
@@ -80,15 +80,17 @@ class BotpandaApplicationTests {
 	@Test
 	void emaCalcTest(){
 		//when
+		bl.ema.setMaxEmaListLength(10);
 		int expectedvalue = 84;
-		int value =  (int)bl.ema.getLast().doubleValue();
+		Double value =  bl.ema.getLast().doubleValue();
 		//then
 		// double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65, 95, 29,46,6,3,54,656,32,455,66,22,33,55,66,33,99};
 		// for(double c : blArr){
 		// 	bl.addCandle(new BpCandlestick(c));
 		// }
+		log.info("EMA list: " + bl.ema.getEmaList());
 		log.info("EMA = " + value);
-		assertTrue(value == expectedvalue);
+		assertTrue((int)value.doubleValue() == expectedvalue);
 	}
 
 	@Test
@@ -107,7 +109,7 @@ class BotpandaApplicationTests {
 	@Test
 	void isCrashingTest(){
 		BotLogic botCrashing = new BotLogic();
-		double crashingArr[] = 
+		double crashingArr[] =
 		{
 			100, 178, 76, 125, 110, 100, 101, 99, 112, 107,
 			98, 88, 80, 65, 76, 45, 55, 70, 50, 55, 90, 45
@@ -121,10 +123,10 @@ class BotpandaApplicationTests {
 	@Test
 	void isNotCrashingTest(){
 		BotLogic botNotCrashing = new BotLogic();
-		double crashingArr[] = 
+		double crashingArr[] =
 		{
 			98, 88, 80, 65, 76, 45, 55, 70, 50, 55, 90, 45,
-			100, 178, 76, 125, 110, 100, 101, 99, 112, 107			
+			100, 178, 76, 125, 110, 100, 101, 99, 112, 107
 		};
 		for(double c : crashingArr){
 			botNotCrashing.addCandle(new BpCandlestick(c));
@@ -139,7 +141,7 @@ class BotpandaApplicationTests {
 	void parseBalanceTest(){
 		String jsStr = new String();
 		ClassLoader classLoader = getClass().getClassLoader();
-		File file = new File(classLoader.getResource("balancesSnapshotJSON.test").getFile());            
+		File file = new File(classLoader.getResource("balancesSnapshotJSON.test").getFile());
 		try {
 			jsStr = new String(Files.readAllBytes(file.toPath()));
 		} catch (IOException e) {
