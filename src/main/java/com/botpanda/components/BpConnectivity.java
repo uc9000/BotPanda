@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletionStage;
 
 import com.botpanda.entities.Order;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Service;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-//GET CANDLES FROM REST API AND WEBSOCKETS
+//GET CANDLES FROM REST API AND WEBSOCKETS, SEND AND RECEIVE JSON MESSAGES
 @Service
 @Slf4j
 public class BpConnectivity {
@@ -61,13 +62,15 @@ public class BpConnectivity {
     //REST VARS
     private static final String REST_URL = "https://api.exchange.bitpanda.com/public/v1/candlesticks/";
     private String restUrl;
-    private OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
-
     
     //WEBSOCKET VARS
     private static final String WS_URL = "wss://streams.exchange.bitpanda.com";
     private WebSocket ws;
     private String apiKey = new String("");
+
+    //OTHER VARS
+    private OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
+    private OffsetDateTime lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
 
     Listener wsListener = new Listener(){
         @Override
@@ -94,6 +97,11 @@ public class BpConnectivity {
         @Override
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
+            date = OffsetDateTime.now(ZoneOffset.UTC);
+            // adding extrapolated candles if no candle is received for > 62 seconds
+            if(ChronoUnit.SECONDS.between(lastCandleDate, date) > 62){
+                botLogic.addCandle(botLogic.getLastCandle());
+            }
             if (reconnecting){
                 if(settings.isTestingMode() && !subscribedToCandles){
                     subscribeToCandles();
@@ -109,6 +117,7 @@ public class BpConnectivity {
                 log.info("received message: " + new JSONObject(strMsg).toString(4));
             }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
+                lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
                 if(botLogic.shouldBuy()){
                     if(!settings.isTestingMode()){
