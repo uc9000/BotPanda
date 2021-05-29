@@ -2,12 +2,14 @@ package com.botpanda;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.botpanda.components.BotLogic;
 import com.botpanda.components.BotSettings;
 import com.botpanda.components.BpConnectivity;
 import com.botpanda.components.BpJSONtemplates;
+import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.OrderSide;
@@ -103,6 +105,17 @@ class BotpandaApplicationTests {
 		//assert(order.get("instrument_code")).equals("DOGE_EUR");
 		assert(order.get("type")).equals("MARKET");
 		assert(order.get("amount")).equals("43.91234");
+	}
+
+	@Test
+	void simpleAvgTest(){
+		ExponentialMovingAverage ema = new ExponentialMovingAverage();
+		double blArr[] = {100, 110, 120, 110};
+		ArrayList<Double> l = new ArrayList<Double>();
+		for(Double c : blArr){
+			l.add(c);
+		}
+		assertTrue(ema.simpleAverage(l, 3) == 110);
 	}
 
 	/*

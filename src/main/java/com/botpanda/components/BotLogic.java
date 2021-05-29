@@ -210,5 +210,6 @@ public class BotLogic {
         rsi.clear();
         macd.clear();
         ema.clear();
+        values.clear();
     }
 }

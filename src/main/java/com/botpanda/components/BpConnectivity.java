@@ -101,6 +101,7 @@ public class BpConnectivity {
             // adding extrapolated candles if no candle is received for > 62 seconds
             if(ChronoUnit.SECONDS.between(lastCandleDate, date) > 62){
                 botLogic.addCandle(botLogic.getLastCandle());
+                lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
             }
             if (reconnecting){
                 if(settings.isTestingMode() && !subscribedToCandles){

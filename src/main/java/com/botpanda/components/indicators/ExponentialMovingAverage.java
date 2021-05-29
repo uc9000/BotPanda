@@ -22,18 +22,22 @@ public class ExponentialMovingAverage implements Indicator{
         return multiplier * (close - previous) + previous;
     }
 
-    private Double simpleAverage(){
+    public Double simpleAverage(ArrayList<Double> values, int firstElements){
         Double sum = 0.0;
         int i;
-        for(i = 0; i < emaLength && i < values.size(); i++){
+        for(i = 0; i < firstElements && i < values.size(); i++){
             sum += values.get(i);
         }
         return sum/i;
     }
 
+    private Double simpleAverage(){
+        return simpleAverage(values, emaLength);
+    }
+
     @Override
     public Double calc(){
-        if(values.size() < emaLength - 1){
+        if(values.size() < emaLength){
             last = simpleAverage();
             emaList.add(last);
             return last;
