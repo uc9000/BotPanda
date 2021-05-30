@@ -36,17 +36,20 @@ public class RelativeStrenghtIndex implements Indicator{
             double change = close - prevValue;
             if (change < 0){
                 down -= change;
+                cnt++;
             }
-            else{
+            else if(change > 0){
                 up += change;
+                cnt++;
             }
             log.trace("close : " + close + " ; prevValue: " + prevValue);
             prevValue = close;
-            cnt++;
         }
-        lastAvgGain = up/(cnt - 1);
-        lastAvgLoss = down/(cnt - 1);
-        this.lastRs = lastAvgGain/lastAvgLoss;
+        if(cnt > 2){
+            lastAvgGain = up/cnt;
+            lastAvgLoss = down/cnt;
+            this.lastRs = up/down;
+        }
         return this.lastRs;
     }
 
@@ -79,7 +82,7 @@ public class RelativeStrenghtIndex implements Indicator{
                 return false;
             }
         }
-        log.info("BUY signal RSI");
+        log.debug("BUY signal RSI");
         return true;
     }
 

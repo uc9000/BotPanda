@@ -73,7 +73,7 @@ public class BotLogic {
         if(settings.getStrategy().isUsingMacd() && !macd.shouldBuy()){
             return false;
         }
-        else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() < 50){
+        else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() < 50.0){
             return false;
         }
         buyingPrice = lastClosing;
@@ -97,7 +97,7 @@ public class BotLogic {
         if(settings.getStrategy().isUsingMacd() && !macd.shouldSell()){
             return false;
         }
-        else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() > 50){
+        else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() >= 50){
             return false;
         }
         sellingPrice = lastClosing;
@@ -119,11 +119,11 @@ public class BotLogic {
         
         if(settings.getStrategy().isUsingRsi() && values.size() > rsi.getRsiLength()){
             rsi.calc();
-            strategyLogMsg.append(" RSI = " + String.format("%1f", rsi.getLast()));
+            strategyLogMsg.append(" RSI = " + String.format("%.2f", rsi.getLast()));
         }
         if(settings.getStrategy().isUsingEma()){
             ema.calc();
-            strategyLogMsg.append(" EMA " + ema.getEmaLength() + " = " + String.format("%4f", ema.getLast()));
+            strategyLogMsg.append(" EMA " + ema.getEmaLength() + " = " + String.format("%.4f", ema.getLast()));
         }
         if(settings.getStrategy().isUsingMacd()){
             macd.calc();
@@ -166,8 +166,7 @@ public class BotLogic {
         if (amount > settings.getCryptoPriceLimit()){
             amount = settings.getCryptoPriceLimit();
         }
-        BigDecimal bd = new BigDecimal(amount * (1 - TAKER_FEE)).setScale(settings.getFromCurrency().getAmountPrecision(), RoundingMode.DOWN);
-        boughtFor = bd.doubleValue();
+        boughtFor = amount;
         return amount;
     }
 

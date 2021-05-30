@@ -28,14 +28,13 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 //GET CANDLES FROM REST API AND WEBSOCKETS, SEND AND RECEIVE JSON MESSAGES
 @Service
 @Slf4j
 public class BpConnectivity {
-    @Getter
+    //@Getter
     private boolean connected = false,
     authenticated = false,
     subscribedToOrders = false,
@@ -102,6 +101,7 @@ public class BpConnectivity {
             if(ChronoUnit.SECONDS.between(lastCandleDate, date) > 62){
                 botLogic.addCandle(botLogic.getLastCandle());
                 lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
+                handleNewCandle();
             }
             if (reconnecting){
                 if(settings.isTestingMode() && !subscribedToCandles){
@@ -117,39 +117,10 @@ public class BpConnectivity {
             if(!type.equals("HEARTBEAT") && !type.equals("CANDLESTICK")){ // print everything except heartbeats
                 log.info("received message: " + new JSONObject(strMsg).toString(4));
             }
-            if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){
-                lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
+            if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){                
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
-                if(botLogic.shouldBuy()){
-                    if(!settings.isTestingMode()){
-                        sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
-                    }
-                    log.warn(
-                        "BUYING " + botLogic.getBoughtFor() + " " 
-                        + settings.getFromCurrency().name() + " at price: " 
-                        + botLogic.getBuyingPrice()
-                    );                    
-                    botLogic.setBought(true);
-                    
-                }
-                else if(botLogic.shouldSell()){
-                    if(!settings.isTestingMode()){
-                        sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
-                    }
-                    log.warn(
-                        "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
-                        + " at price: " + botLogic.getLastClosing()
-                        + "  with gain [%] : " + 100 * botLogic.currentGain()
-                    );
-                    botLogic.setBought(false);
-                    
-                }
-                else if (botLogic.isBought()){
-                    log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
-                }
-                else{
-                    log.info("WAIT WITH BUYING");
-                }
+                lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
+                handleNewCandle();
             }
             else if(!settings.isTestingMode() && type.equals("ORDER_CREATED")){
                 Order order = jsonTemplate.parseOrder(new JSONObject(strMsg).get("order").toString());
@@ -194,7 +165,7 @@ public class BpConnectivity {
     //REST API METHODS
     public String getAllCandles(){
         String instrumentCodes = new String(settings.getFromCurrency() + "_" + settings.getToCurrency() + "?");
-        OffsetDateTime fromDate = date.minusMinutes(settings.getMaxCandles() * 4 * settings.getPeriod());
+        OffsetDateTime fromDate = date.minusMinutes(settings.getMaxCandles() * 5 * settings.getPeriod());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
         String params = new String(instrumentCodes 
         + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()
@@ -308,5 +279,37 @@ public class BpConnectivity {
         authenticated = false;
         subscribedToCandles = false;
         subscribedToOrders = false;
+    }
+
+    public void handleNewCandle(){ // :) always call after adding new candle
+        if(botLogic.shouldBuy()){
+            if(!settings.isTestingMode()){
+                sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
+            }
+            log.warn(
+                "BUYING " + botLogic.getBoughtFor() + " " 
+                + settings.getFromCurrency().name() + " at price: " 
+                + botLogic.getBuyingPrice()
+            );                    
+            botLogic.setBought(true);            
+        }
+        else if(botLogic.shouldSell()){
+            if(!settings.isTestingMode()){
+                sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
+            }
+            log.warn(
+                "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
+                + " at price: " + botLogic.getLastClosing()
+                + "  with gain [%] : " + 100 * botLogic.currentGain()
+            );
+            botLogic.setBought(false);
+            
+        }
+        else if (botLogic.isBought()){
+            log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
+        }
+        else{
+            log.info("WAIT WITH BUYING");
+        }
     }
 }
