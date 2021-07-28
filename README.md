@@ -8,6 +8,8 @@ It retrieves and analyzes candles given from Bitpanda Pro REST and Web Sockets.
 
 ## To Do:
 - [x] automatic reconnection on unexpected websocket close
-- [ ] Sending actual order requests to web socket (requires more testing first)
-- [ ] MACD indicator for trading
+- [x] Sending actual order requests to web socket (requires more testing first)
+- [x] MACD indicator for trading
+- [x] Full strategies using EMA, RSI and MACD
+- [ ] ATR based stop loss   
 - [ ] Simple GUI with use of HTML and REST
