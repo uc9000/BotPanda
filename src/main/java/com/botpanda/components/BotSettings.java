@@ -30,14 +30,14 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.XRP;
+        fromCurrency = Currency.ETH;
         toCurrency = Currency.EUR;
-        maxCandles = 200;
+        maxCandles = 250;
         safetyFactor = 2;
-        fiatPriceLimit = 30;
+        fiatPriceLimit = 32;
         cryptoPriceLimit = 500;
-        stopLoss = 0.005;
-        target = 0.015;
+        stopLoss = 0.004;
+        target = 0.01;
         rsiMin = 25;
         rsiMax = 75;
         rsiLength = 15;
@@ -46,6 +46,6 @@ public class BotSettings {
             maxCandles = rsiLength + 1;
         }
         strategy = Strategy.MACD_RSI_EMA;
-        emaLength = 120;
+        emaLength = 200;
     }
 }

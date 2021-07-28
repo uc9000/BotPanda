@@ -206,9 +206,9 @@ public class BotLogic {
     }
 
     public void clearAll(){
+        values.clear();
         rsi.clear();
         macd.clear();
-        ema.clear();
-        values.clear();
+        ema.clear();        
     }
 }

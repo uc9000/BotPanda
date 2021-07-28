@@ -15,12 +15,12 @@ public class MACD implements Indicator{
     @Getter
     private ArrayList<Double> histogram = new ArrayList<Double>();
     private ArrayList<Double> values = new ArrayList<Double>();
-    ExponentialMovingAverage fastEma = new ExponentialMovingAverage();
-    ExponentialMovingAverage slowEma = new ExponentialMovingAverage();
-    ExponentialMovingAverage signalEma = new ExponentialMovingAverage();
+    private ExponentialMovingAverage fastEma = new ExponentialMovingAverage();
+    private ExponentialMovingAverage slowEma = new ExponentialMovingAverage();
+    private ExponentialMovingAverage signalEma = new ExponentialMovingAverage();
     @Getter @Setter
     private int listLength = 6;
-    @Getter
+    @Getter @Setter
     private int fastLength, slowLength, signalLength;
     @Getter
     private Double last, lastSignal, lastHistogram;
@@ -94,6 +94,8 @@ public class MACD implements Indicator{
 
     @Override
     public void clear() {
+        fastEma.clear();
+        slowEma.clear();
         macd.clear();
         signal.clear();
         histogram.clear();        

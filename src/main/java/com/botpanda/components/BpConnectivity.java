@@ -17,7 +17,6 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletionStage;
 
 import com.botpanda.entities.Order;
@@ -69,7 +68,6 @@ public class BpConnectivity {
 
     //OTHER VARS
     private OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
-    private OffsetDateTime lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
 
     Listener wsListener = new Listener(){
         @Override
@@ -77,7 +75,6 @@ public class BpConnectivity {
             connected = true;
             webSocket.request(1);
             log.info("\nOPENED with subprotocol: " + webSocket.getSubprotocol());
-            botLogic.clearAll();
         }
 
         @Override
@@ -97,12 +94,6 @@ public class BpConnectivity {
         public java.util.concurrent.CompletionStage<?> onText(WebSocket webSocket, CharSequence message, boolean last) {
             webSocket.request(1);
             date = OffsetDateTime.now(ZoneOffset.UTC);
-            // adding extrapolated candles if no candle is received for > 62 seconds
-            if(ChronoUnit.SECONDS.between(lastCandleDate, date) > 62){
-                botLogic.addCandle(botLogic.getLastCandle());
-                lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
-                handleNewCandle();
-            }
             if (reconnecting){
                 if(settings.isTestingMode() && !subscribedToCandles){
                     subscribeToCandles();
@@ -119,7 +110,6 @@ public class BpConnectivity {
             }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){                
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
-                lastCandleDate = OffsetDateTime.now(ZoneOffset.UTC);
                 handleNewCandle();
             }
             else if(!settings.isTestingMode() && type.equals("ORDER_CREATED")){
@@ -155,9 +145,6 @@ public class BpConnectivity {
                     subscribeToOrders();
                 }
             }
-            // else if(type.equals("BALANCES_SNAPSHOT")){
-            //     botLogic.setCryptoBalance(Double.parseDouble(jsonTemplate.parseBalance(strMsg, settings.getFromCurrency()).getAvailable()));
-            // }
             return null;
         }
     };
@@ -195,6 +182,7 @@ public class BpConnectivity {
     
     //WEBSOCKETS METHODS
     public void connect(){
+        botLogic.clearAll();
         reconnecting = true;
         try {
             ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(20)).buildAsync(new URI(WS_URL), wsListener).join();
@@ -246,17 +234,6 @@ public class BpConnectivity {
             true
         );
     }
-
-    // public void subscribeToAccountHistory(){
-    //     if(!authenticated){
-    //         log.warn("Can't subscribe to History, not authenticated yet");
-    //         return;
-    //     }
-    //     ws.sendText(
-    //         jsonTemplate.subscriptionToAccountHistory(),
-    //         true
-    //     );
-    // }
 
     public void sendMarketOrder(OrderSide side, double amount){
         if(!subscribedToOrders){

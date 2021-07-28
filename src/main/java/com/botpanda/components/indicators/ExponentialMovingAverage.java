@@ -23,6 +23,9 @@ public class ExponentialMovingAverage implements Indicator{
     }
 
     public Double simpleAverage(ArrayList<Double> values, int firstElements){
+        if(values.size() < 1){
+            return 0.0;
+        }
         Double sum = 0.0;
         int i;
         for(i = 0; i < firstElements && i < values.size(); i++){
@@ -37,7 +40,7 @@ public class ExponentialMovingAverage implements Indicator{
 
     @Override
     public Double calc(){
-        if(values.size() < emaLength){
+        if(values.size() < emaLength || emaList.size() == 0){
             last = simpleAverage();
             emaList.add(last);
             return last;
