@@ -30,7 +30,7 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.ETH;
+        fromCurrency = Currency.LTC;
         toCurrency = Currency.EUR;
         maxCandles = 250;
         safetyFactor = 2;

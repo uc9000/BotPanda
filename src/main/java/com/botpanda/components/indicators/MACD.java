@@ -18,12 +18,14 @@ public class MACD implements Indicator{
     private ExponentialMovingAverage fastEma = new ExponentialMovingAverage();
     private ExponentialMovingAverage slowEma = new ExponentialMovingAverage();
     private ExponentialMovingAverage signalEma = new ExponentialMovingAverage();
+    private int signalDuration = 0;
     @Getter @Setter
     private int listLength = 6;
     @Getter @Setter
-    private int fastLength, slowLength, signalLength;
+    private int fastLength, slowLength, signalLength, maxSignalDuration;
     @Getter
     private Double last, lastSignal, lastHistogram;
+
 
     public void setParams(int fastLength, int slowLength, int signalLength){
         this.fastLength   = fastLength;
@@ -35,6 +37,7 @@ public class MACD implements Indicator{
     }
 
     public MACD(){
+        this.maxSignalDuration = 2;
         setParams(12, 26, 9);
         signalEma.setValues(macd);
     }
@@ -45,7 +48,12 @@ public class MACD implements Indicator{
     }
 
     @Override
-    public Double calc() {    
+    public Double calc() {
+        if(signalDuration > 0){
+            signalDuration--;
+        }else if(signalDuration < 0){
+            signalDuration++;
+        }
         last = fastEma.calc() - slowEma.calc();
         if(values.size() > slowLength){
             macd.add(last);
@@ -71,7 +79,11 @@ public class MACD implements Indicator{
 
     @Override
     public boolean shouldBuy() {
+        if(signalDuration > 0){
+            return true;
+        }
         if(lastHistogram > 0 && histogram.get(histogram.size() - 2) < 0){
+            signalDuration = maxSignalDuration;
             return true;
         }
         return false;
@@ -79,7 +91,11 @@ public class MACD implements Indicator{
 
     @Override
     public boolean shouldSell() {
+        if(signalDuration < 0){
+            return true;
+        }
         if(lastHistogram < 0 && histogram.get(histogram.size() - 2) > 0){
+            signalDuration = -maxSignalDuration;
             return true;
         }
         return false;
