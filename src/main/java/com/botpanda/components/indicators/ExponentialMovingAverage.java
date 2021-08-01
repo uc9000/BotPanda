@@ -22,7 +22,7 @@ public class ExponentialMovingAverage implements Indicator{
         return multiplier * (close - previous) + previous;
     }
 
-    public Double simpleAverage(ArrayList<Double> values, int firstElements){
+    public static Double simpleAverage(ArrayList<Double> values, int firstElements){
         if(values.size() < 1){
             return 0.0;
         }

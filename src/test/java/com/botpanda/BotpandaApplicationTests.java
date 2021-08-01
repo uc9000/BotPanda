@@ -50,6 +50,7 @@ class BotpandaApplicationTests {
 	void parseFromJsonTest() throws InterruptedException {
 		//given
 		settings = new BotSettings();
+		settings.setFromCurrency(Currency.BTC);
 		con.setSettings(settings);
 		bl.setSettings(settings);
 		//when
@@ -109,59 +110,11 @@ class BotpandaApplicationTests {
 
 	@Test
 	void simpleAvgTest(){
-		ExponentialMovingAverage ema = new ExponentialMovingAverage();
 		double blArr[] = {100, 110, 120, 110};
 		ArrayList<Double> l = new ArrayList<Double>();
 		for(Double c : blArr){
 			l.add(c);
 		}
-		assertTrue(ema.simpleAverage(l, 3) == 110);
+		assertTrue(ExponentialMovingAverage.simpleAverage(l, 3) == 110);
 	}
-
-	/*
-	@Test
-	void isCrashingTest(){
-		BotLogic botCrashing = new BotLogic();
-		double crashingArr[] =
-		{
-			100, 178, 76, 125, 110, 100, 101, 99, 112, 107,
-			98, 88, 80, 65, 76, 45, 55, 70, 50, 55, 90, 45
-		};
-		for(double c : crashingArr){
-			botCrashing.addCandle(new BpCandlestick(c));
-		}
-		assertTrue(botCrashing.isCrashing());
-	}
-
-	@Test
-	void isNotCrashingTest(){
-		BotLogic botNotCrashing = new BotLogic();
-		double crashingArr[] =
-		{
-			98, 88, 80, 65, 76, 45, 55, 70, 50, 55, 90, 45,
-			100, 178, 76, 125, 110, 100, 101, 99, 112, 107
-		};
-		for(double c : crashingArr){
-			botNotCrashing.addCandle(new BpCandlestick(c));
-		}
-		assertFalse(botNotCrashing.isCrashing());
-	}
-
-	*/
-
-	/*
-	@Test
-	void parseBalanceTest(){
-		String jsStr = new String();
-		ClassLoader classLoader = getClass().getClassLoader();
-		File file = new File(classLoader.getResource("balancesSnapshotJSON.test").getFile());
-		try {
-			jsStr = new String(Files.readAllBytes(file.toPath()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		Balance b = js.parseBalance(jsStr, Currency.XRP);
-		assert(b).getAvailable().equals("0.976");
-	}
-	*/
 }

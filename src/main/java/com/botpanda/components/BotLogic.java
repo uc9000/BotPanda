@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.botpanda.components.indicators.AverageTrueRange;
 import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.components.indicators.MACD;
 import com.botpanda.components.indicators.RelativeStrenghtIndex;
@@ -25,24 +26,32 @@ public class BotLogic {
     private boolean bought = false;
     @Getter
     private ArrayList <BpCandlestick> candleList  = new ArrayList<BpCandlestick>();
-    private ArrayList <Double> values = new ArrayList<Double>();
+    private ArrayList <Double> values = new ArrayList<Double>(); //closing prices
     @Getter
     private ArrayList <Double> gainList = new ArrayList<Double>();
     BotSettings settings;
     @Getter
     private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
+    private RiskManagement riskManagement;
+
     public RelativeStrenghtIndex rsi = new RelativeStrenghtIndex();
     public ExponentialMovingAverage ema = new ExponentialMovingAverage();
     public MACD macd = new MACD();
-
-
+    public AverageTrueRange atr = new AverageTrueRange();
 
     //Constructors:
     public BotLogic(){
         rsi.setValues(values);
         ema.setValues(values);
         macd.setValues(values);
+        atr.setCandles(candleList);
+        riskManagement = new RiskManagement(settings, atr, values);
+    }
+
+    public BotLogic(BotSettings settings){
+        this();
+        setSettings(settings);
     }
     
     public void setSettings(BotSettings settings){
@@ -52,18 +61,7 @@ public class BotLogic {
         ema.setEmaLength(settings.getEmaLength());
     }
 
-    public BotLogic(BotSettings settings){
-        this();
-        setSettings(settings);
-    }
-
     public boolean shouldBuy(){
-        // if(isCrashing()){
-        //     return false;
-        // }
-        if (bought){
-            return false;
-        }
         if(settings.getStrategy().isUsingEma() && !ema.shouldBuy()){
             return false;
         }
@@ -75,6 +73,10 @@ public class BotLogic {
         }
         else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() < 50.0){
             return false;
+        }        
+        riskManagement.setEntryPrice(lastClosing);
+        if (bought){
+            return false;
         }
         buyingPrice = lastClosing;
         return true;
@@ -84,7 +86,7 @@ public class BotLogic {
         if(!bought){
             return false;
         }
-        if(targetReached(1) || stopLossReached((int)settings.getSafetyFactor())){
+        if(riskManagement.targetReached() || riskManagement.stopLossReached()){
             sellingPrice = lastClosing;
             return true;
         }
@@ -100,6 +102,7 @@ public class BotLogic {
         else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() >= 50){
             return false;
         }
+        riskManagement.setEntryPrice(0.0);
         sellingPrice = lastClosing;
         return true;
     }
@@ -116,7 +119,7 @@ public class BotLogic {
             this.candleList.remove(0);
             this.values.remove(0);
         }
-        
+        atr.calc();
         if(settings.getStrategy().isUsingRsi() && values.size() > rsi.getRsiLength()){
             rsi.calc();
             strategyLogMsg.append(" RSI = " + String.format("%.2f", rsi.getLast()));
@@ -175,40 +178,11 @@ public class BotLogic {
         return bd.doubleValue();
     }
 
-    public boolean targetReached(int lastElements){
-        if(lastElements < 1 || gainList.size() < settings.getSafetyFactor()){
-            return false;
-        }
-        if(lastElements >= gainList.size()){
-            lastElements = gainList.size() -1;
-        }
-        for(int i = 0 ; i < lastElements ; i++){
-            if(gainList.get(gainList.size() - 1 - i) < settings.getTarget()){
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean stopLossReached(int lastElements){
-        if(lastElements < 1 || gainList.size() < settings.getSafetyFactor()){
-            return false;
-        }
-        if(lastElements >= gainList.size()){
-            lastElements = gainList.size() -1;
-        }
-        for(int i = 0 ; i < lastElements ; i++){
-            if(gainList.get(gainList.size() - 1 - i) > -1 * settings.getStopLoss()){
-                return false;
-            }
-        }
-        return true;
-    }
-
     public void clearAll(){
         values.clear();
         rsi.clear();
         macd.clear();
-        ema.clear();        
+        ema.clear();
+        atr.clear();     
     }
 }
