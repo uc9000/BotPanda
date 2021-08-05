@@ -50,7 +50,7 @@ public class BotSettings {
         if(rsiLength >= maxCandles){
             maxCandles = rsiLength + 1;
         }
-        strategy = Strategy.MACD_RSI_EMA;
+        strategy = Strategy.MACD_CMF;
         emaLength = 200;
     }
 }

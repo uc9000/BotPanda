@@ -102,7 +102,11 @@ public class BotLogic {
 
     public void addCandle(BpCandlestick candle){
         StringBuilder strategyLogMsg = new StringBuilder();
-        strategyLogMsg.append("CL: " + candle.getClose());
+        strategyLogMsg.append("CL: " + String.format("%.5f", candle.getClose()).substring(0, 7)
+            // + " Vo: " + String.format("%.1f", candle.getVolume())  
+            // + " Hi: " + candle.getHigh()  
+            // + " Lo: " + candle.getLow()
+        );
         lastClosing = candle.getClose();
         this.values.add(lastClosing);
         this.candleList.add(candle);
@@ -116,21 +120,21 @@ public class BotLogic {
             rsi.calc();
             strategyLogMsg.append(" RSI =" + String.format("%.2f", rsi.getLast()));
         }
-        if(settings.getStrategy().isUsingCmf() && values.size() > cmf.getCmfLength()){
-            cmf.calc();
-            strategyLogMsg.append(" CMF =" + String.format("%.2f", cmf.getLast()));
-        }
         if(settings.getStrategy().isUsingEma()){
             ema.calc();
-            strategyLogMsg.append(" EMA " + ema.getEmaLength() + " =" + String.format("%.4f", ema.getLast()));
-        }
-        if(settings.getStrategy().isUsingMacd()){
-            macd.calc();
-            strategyLogMsg.append("\nMACD =" + macd.getLast() + " Histo =" + macd.getLastHistogram() + " sig =" + macd.getLastSignal());
+            strategyLogMsg.append(" EMA " + ema.getEmaLength() + " =" + ema.getLast().toString().substring(0, 5));
         }
         if(settings.getAtrTarget() != 0.0 || settings.getAtrStopLoss() != 0){
             atr.calc();
             strategyLogMsg.append(" ATR = " + String.format("%.5f", atr.getLast()));
+        }
+        if(settings.getStrategy().isUsingMacd()){
+            macd.calc();
+            strategyLogMsg.append(" MACD Histo =" + String.format("%.3e",macd.getLastHistogram()));
+        }
+        if(settings.getStrategy().isUsingCmf() && values.size() > cmf.getCmfLength()){
+            cmf.calc();
+            strategyLogMsg.append(" CMF =" + String.format("%.2f", cmf.getLast()));
         }
         log.info(strategyLogMsg.toString());
         if(bought){

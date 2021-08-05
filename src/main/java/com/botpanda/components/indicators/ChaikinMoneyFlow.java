@@ -6,7 +6,9 @@ import com.botpanda.entities.BpCandlestick;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class ChaikinMoneyFlow implements Indicator {
     @Setter
     private ArrayList<BpCandlestick> candles;
@@ -25,10 +27,19 @@ public class ChaikinMoneyFlow implements Indicator {
         }
         double mfVolumeSum = 0.0;
         double VolumeSum = 0.0;
-        for(int i = candles.size() - cmfLength ; i < candles.size() ; i++){
+        int iter = 0;
+        for(int i = candles.size() - 1; i >= 0 ; i--){
             BpCandlestick c = candles.get(i);
-            mfVolumeSum += c.getVolume() * (c.getClose() * 2 - c.getLow() - c.getHigh()) / (c.getHigh() - c.getLow());
+            if(c.getHigh() == c.getLow()){
+                continue;
+            }
+            double mfMultiplier =  ((c.getClose() -c.getLow()) - (c.getHigh() - c.getClose())) / (c.getHigh() - c.getLow());
+            mfVolumeSum += c.getVolume() * mfMultiplier;
             VolumeSum += c.getVolume();
+            iter++;
+            if(iter > cmfLength){
+                break;
+            }
         }
         last = mfVolumeSum / VolumeSum;
         cmfList.add(last);
