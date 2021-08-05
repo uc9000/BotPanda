@@ -152,7 +152,7 @@ public class BpConnectivity {
     //REST API METHODS
     public String getAllCandles(){
         String instrumentCodes = new String(settings.getFromCurrency() + "_" + settings.getToCurrency() + "?");
-        OffsetDateTime fromDate = date.minusMinutes(settings.getMaxCandles() * 5 * settings.getPeriod());
+        OffsetDateTime fromDate = date.minusMinutes(settings.getMaxCandles() * 4 * settings.getPeriod());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
         String params = new String(instrumentCodes 
         + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()

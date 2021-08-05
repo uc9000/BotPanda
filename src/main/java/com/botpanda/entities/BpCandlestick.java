@@ -10,6 +10,8 @@ public class BpCandlestick {
     private double low;
     private double open;
     private double close;
+    private double total_amount;
+    private double volume;
 
     public BpCandlestick(){
         close = 1;

@@ -9,9 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 //@Slf4j
-public class AverageTrueRange implements Indicator{    
-    @Setter
-    private ArrayList<Double> values;
+public class AverageTrueRange implements Indicator{   
     @Setter
     private ArrayList<BpCandlestick> candles;
     @Getter
@@ -19,21 +17,27 @@ public class AverageTrueRange implements Indicator{
     @Getter
     private Double last = 0.0;
     @Setter @Getter
-    private int atrLength, atrMaxListSize = 5;
+    private int atrLength = 14, atrMaxListSize = 5;
 
     @Override
     public Double calc() {
-        ArrayList<Double> TrVarsList = new ArrayList<>();
-        ArrayList<Double> TrList = new ArrayList<>();
+        if(candles.size() < atrLength + 2){
+            last = 0.0;
+            return last;
+        }
+        ArrayList<Double> TrVarsList = new ArrayList<Double>();
+        ArrayList<Double> TrList = new ArrayList<Double>();
         for(int i = candles.size() - atrLength ; i < candles.size() ; i++){
             BpCandlestick candle = candles.get(i);
             Double prevClose = candles.get(i-1).getClose();
             TrVarsList.clear();
             TrVarsList.add(candle.getHigh() - candle.getLow());
             TrVarsList.add(candle.getHigh() - prevClose);
-            TrVarsList.add(prevClose - candle.getLow());
-            TrList.add(Collections.max(TrVarsList));
+            TrVarsList.add(prevClose - candle.getLow());            
+            TrList.add(Collections.max(TrVarsList)/10);
+            
         }
+        //log.info("TrList: " + TrList.toString());
         last = ExponentialMovingAverage.simpleAverage(TrList, atrLength);
         atrList.add(last);
         if(atrList.size() > atrMaxListSize){
@@ -54,6 +58,11 @@ public class AverageTrueRange implements Indicator{
 
     @Override
     public void clear() {
-        atrList.clear();        
+        atrList.clear();
+    }
+
+    @Override
+    public void setValues(ArrayList<Double> values) {
+        throw new UnsupportedOperationException("ATR uses BpCandlestick instead of values<double> as source");
     }
 }
