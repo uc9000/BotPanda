@@ -10,8 +10,10 @@ import lombok.Setter;
 public class RiskManagement {
     @Getter
     private Double stopLossPrice = 0.0, targetPrice = 0.0;
+    @Getter @Setter
+    private Double entryPrice = 0.0;
     @Getter
-    private Double entryPrice = 0.0, entryAtr;
+    private Double entryAtr;
     @Setter
     private BotSettings settings;
     @Setter
@@ -27,14 +29,6 @@ public class RiskManagement {
         this.setSettings(settings);
         this.setValues(values);
         this.setAtr(atr);
-    }
-
-    public void setEntryPrice(Double entryPrice){
-        if(this.entryPrice > entryPrice){
-            return;
-        }
-        this.entryAtr = atr.getLast();
-        this.entryPrice = entryPrice;
     }
 
     private boolean hardTargetReached(){

@@ -18,11 +18,10 @@ public class MACD implements Indicator{
     private ExponentialMovingAverage fastEma = new ExponentialMovingAverage();
     private ExponentialMovingAverage slowEma = new ExponentialMovingAverage();
     private ExponentialMovingAverage signalEma = new ExponentialMovingAverage();
-    private int signalDuration = 0;
     @Getter @Setter
     private int listLength = 6;
     @Getter @Setter
-    private int fastLength, slowLength, signalLength, maxSignalDuration;
+    private int fastLength, slowLength, signalLength;
     @Getter
     private Double last, lastSignal, lastHistogram;
 
@@ -37,7 +36,6 @@ public class MACD implements Indicator{
     }
 
     public MACD(){
-        this.maxSignalDuration = 2;
         setParams(12, 26, 9);
         signalEma.setValues(macd);
     }
@@ -47,13 +45,14 @@ public class MACD implements Indicator{
         setValues(values);
     }
 
+    public Double extrapolatedHistogram(){        
+        Double change = histogram.get(listLength - 1) - histogram.get(listLength - 2);
+        log.info("Avg change: " + change);
+        return last + change;
+    }
+
     @Override
     public Double calc() {
-        if(signalDuration > 0){
-            signalDuration--;
-        }else if(signalDuration < 0){
-            signalDuration++;
-        }
         last = fastEma.calc() - slowEma.calc();
         if(values.size() > slowLength){
             macd.add(last);
@@ -77,13 +76,31 @@ public class MACD implements Indicator{
         return last;
     }
 
-    @Override
-    public boolean shouldBuy() {
-        if(signalDuration > 0){
+    private boolean changedOnce(int range){
+        int start = histogram.size() - range;
+        start = (start < 0) ? 0 : start;
+        int changed = 0;
+        boolean positive = histogram.get(0) > 0;
+        for(int i = start ; i < histogram.size() -1; i++){
+            if(positive != histogram.get(i) > 0){
+                positive = histogram.get(i) > 0;
+                changed++;
+            }
+            if(changed > 1){
+                return false;
+            }
+        }
+        if(changed == 1){
             return true;
         }
-        if(lastHistogram > 0 && histogram.get(histogram.size() - 2) < 0){
-            signalDuration = maxSignalDuration;
+        return false;
+    }
+
+    @Override
+    public boolean shouldBuy() {
+        if(changedOnce(3) 
+        && 
+        (lastHistogram > 0 || extrapolatedHistogram() > 0)){
             return true;
         }
         return false;
@@ -91,11 +108,9 @@ public class MACD implements Indicator{
 
     @Override
     public boolean shouldSell() {
-        if(signalDuration < 0){
-            return true;
-        }
-        if(lastHistogram < 0 && histogram.get(histogram.size() - 2) > 0){
-            signalDuration = -maxSignalDuration;
+        if(changedOnce(3)
+        && 
+        (lastHistogram < 0 || extrapolatedHistogram() < 0)){
             return true;
         }
         return false;

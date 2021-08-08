@@ -32,7 +32,7 @@ public class BotSettings {
     public BotSettings(){
         unit = Unit.MINUTES;
         period = 1;
-        fromCurrency = Currency.XRP;
+        fromCurrency = Currency.BTC;
         toCurrency = Currency.EUR;
         maxCandles = 200;
         safetyFactor = 2;

@@ -73,10 +73,11 @@ public class BotLogic {
         if(settings.getStrategy().isUsingMacd() && !macd.shouldBuy()){ return false; }
         else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() < 50.0)
             { return false; }
-        riskManagement.setEntryPrice(lastClosing);
+        
         if (bought){
             return false;
         }
+        riskManagement.setEntryPrice(lastClosing);
         buyingPrice = lastClosing;
         return true;
     }
@@ -128,13 +129,14 @@ public class BotLogic {
             atr.calc();
             strategyLogMsg.append(" ATR = " + String.format("%.5f", atr.getLast()));
         }
-        if(settings.getStrategy().isUsingMacd()){
-            macd.calc();
-            strategyLogMsg.append(" MACD Histo =" + String.format("%.3e",macd.getLastHistogram()));
-        }
         if(settings.getStrategy().isUsingCmf() && values.size() > cmf.getCmfLength()){
             cmf.calc();
-            strategyLogMsg.append(" CMF =" + String.format("%.2f", cmf.getLast()));
+            strategyLogMsg.append(" CMF =" + String.format("%.4f", cmf.getLast()).substring(0, 5));
+        }
+        if(settings.getStrategy().isUsingMacd()){
+            macd.calc();
+            strategyLogMsg.append(" MACD Histo =" + String.format("%.5f",macd.getLastHistogram()));
+            strategyLogMsg.append(" Extr Histo =" + String.format("%.5f",macd.extrapolatedHistogram()));
         }
         log.info(strategyLogMsg.toString());
         if(bought){

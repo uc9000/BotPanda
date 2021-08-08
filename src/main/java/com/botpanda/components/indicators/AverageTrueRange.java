@@ -34,7 +34,7 @@ public class AverageTrueRange implements Indicator{
             TrVarsList.add(candle.getHigh() - candle.getLow());
             TrVarsList.add(candle.getHigh() - prevClose);
             TrVarsList.add(prevClose - candle.getLow());            
-            TrList.add(Collections.max(TrVarsList)/10);
+            TrList.add(Collections.max(TrVarsList));
             
         }
         //log.info("TrList: " + TrList.toString());
