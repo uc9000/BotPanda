@@ -21,10 +21,6 @@ public class RiskManagement {
     @Setter
     private ArrayList<Double> values;
 
-    public RiskManagement(){
-        throw new UnsupportedOperationException("Deleted default constructor for RiskManagement class");
-    }
-
     public RiskManagement(BotSettings settings, AverageTrueRange atr, ArrayList<Double> values){
         this.setSettings(settings);
         this.setValues(values);

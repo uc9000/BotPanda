@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
 import com.botpanda.entities.Order;
@@ -40,11 +41,11 @@ public class BpConnectivity {
     subscribedToCandles = false,
     //subscribedToAccountHistory = false,
     reconnecting = false;
-    private BotLogic botLogic = new BotLogic();
+    private final BotLogic botLogic = new BotLogic();
     private BotSettings settings = new BotSettings();
 
     @Autowired
-    private BpJSONtemplates jsonTemplate;
+    private final BpJSONtemplates jsonTemplate;
 
     public void setSettings(BotSettings settings){
         this.settings = settings;
@@ -52,19 +53,19 @@ public class BpConnectivity {
     }
 
     //CONSTRUCTORS:
-    public BpConnectivity(){
+    public BpConnectivity(BpJSONtemplates jsonTemplate){
+        this.jsonTemplate = jsonTemplate;
         settings = new BotSettings();
         botLogic.setSettings(settings);
     }
 
     //REST VARS
     private static final String REST_URL = "https://api.exchange.bitpanda.com/public/v1/candlesticks/";
-    private String restUrl;
-    
+
     //WEBSOCKET VARS
     private static final String WS_URL = "wss://streams.exchange.bitpanda.com";
     private WebSocket ws;
-    private String apiKey = new String("");
+    private String apiKey = "";
 
     //OTHER VARS
     private OffsetDateTime date = OffsetDateTime.now(ZoneOffset.UTC);
@@ -114,12 +115,7 @@ public class BpConnectivity {
             }
             else if(!settings.isTestingMode() && type.equals("ORDER_CREATED")){
                 Order order = jsonTemplate.parseOrder(new JSONObject(strMsg).get("order").toString());
-                if(order.getSide().equals("BUY")){
-                    botLogic.setBought(true);
-                }
-                else {
-                    botLogic.setBought(false);
-                }
+                botLogic.setBought(order.getSide().equals("BUY"));
             }
             else if(type.equals("SUBSCRIPTIONS")){
                 JSONArray channels = new JSONObject(strMsg).getJSONArray("channels");
@@ -151,15 +147,15 @@ public class BpConnectivity {
 
     //REST API METHODS
     public String getAllCandles(){
-        String instrumentCodes = new String(settings.getFromCurrency() + "_" + settings.getToCurrency() + "?");
-        OffsetDateTime fromDate = date.minusMinutes(settings.getMaxCandles() * 4 * settings.getPeriod());
+        String instrumentCodes = settings.getFromCurrency() + "_" + settings.getToCurrency() + "?";
+        OffsetDateTime fromDate = date.minusMinutes((long) settings.getMaxCandles() * 4 * settings.getPeriod());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
-        String params = new String(instrumentCodes 
-        + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()
-        + "&from=" + fromDateStr + "&to=" + URLEncoder.encode(date.toString(), StandardCharsets.UTF_8));
-        this.restUrl = new String(REST_URL + params);
+        String params = instrumentCodes
+                + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()
+                + "&from=" + fromDateStr + "&to=" + URLEncoder.encode(date.toString(), StandardCharsets.UTF_8);
+        String restUrl = REST_URL + params;
         //System.out.println(restUrl);
-        StringBuffer response = new StringBuffer();
+        StringBuilder response = new StringBuilder();
         try{
             URL url = new URL(restUrl);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -177,7 +173,7 @@ public class BpConnectivity {
             e.printStackTrace();
             
         }
-        return new String("GET CANDLES FAILED");
+        return "GET CANDLES FAILED";
     }
     
     //WEBSOCKETS METHODS
@@ -195,7 +191,7 @@ public class BpConnectivity {
     public void authenticate(String apiKey){
         if(apiKey.length() < 10){
             ClassLoader classLoader = getClass().getClassLoader();
-            File file = new File(classLoader.getResource("API.private").getFile());            
+            File file = new File(Objects.requireNonNull(classLoader.getResource("API.private")).getFile());
             try {
                 apiKey = new String(Files.readAllBytes(file.toPath()));
             } catch (IOException e) {

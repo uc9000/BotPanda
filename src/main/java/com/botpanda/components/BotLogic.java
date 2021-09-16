@@ -26,15 +26,15 @@ public class BotLogic {
     @Setter @Getter
     private boolean bought = false;
     @Getter
-    private ArrayList <BpCandlestick> candleList  = new ArrayList<BpCandlestick>();
-    private ArrayList <Double> values = new ArrayList<Double>(); //closing prices
+    private final ArrayList <BpCandlestick> candleList  = new ArrayList<>();
+    private final ArrayList <Double> values = new ArrayList<>(); //closing prices
     @Getter
-    private ArrayList <Double> gainList = new ArrayList<Double>();
+    private final ArrayList <Double> gainList = new ArrayList<>();
     BotSettings settings;
     @Getter
     private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
-    private RiskManagement riskManagement;
+    private final RiskManagement riskManagement;
 
     public RelativeStrenghtIndex rsi = new RelativeStrenghtIndex();
     public ExponentialMovingAverage ema = new ExponentialMovingAverage();
@@ -103,15 +103,14 @@ public class BotLogic {
 
     public void addCandle(BpCandlestick candle){
         StringBuilder strategyLogMsg = new StringBuilder();
-        strategyLogMsg.append("CL: " + String.format("%.5f", candle.getClose()).substring(0, 7)
-            // + " Vo: " + String.format("%.1f", candle.getVolume())  
-            // + " Hi: " + candle.getHigh()  
-            // + " Lo: " + candle.getLow()
-        );
+        // + " Vo: " + String.format("%.1f", candle.getVolume())
+        // + " Hi: " + candle.getHigh()
+        // + " Lo: " + candle.getLow()
+        strategyLogMsg.append("CL: ").append(String.format("%.5f", candle.getClose()), 0, 7);
         lastClosing = candle.getClose();
         this.values.add(lastClosing);
         this.candleList.add(candle);
-        log.debug("List after adding candle: \n" + this.candleList.toString() + "\n Arr size: " + this.candleList.size());
+        log.debug("List after adding candle: \n" + this.candleList + "\n Arr size: " + this.candleList.size());
         if(candleList.size() > settings.getMaxCandles() + 1){
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
             this.candleList.remove(0);
@@ -119,24 +118,24 @@ public class BotLogic {
         }
         if(settings.getStrategy().isUsingRsi() && values.size() > rsi.getRsiLength()){
             rsi.calc();
-            strategyLogMsg.append(" RSI =" + String.format("%.2f", rsi.getLast()));
+            strategyLogMsg.append(" RSI =").append(String.format("%.2f", rsi.getLast()));
         }
         if(settings.getStrategy().isUsingEma()){
             ema.calc();
-            strategyLogMsg.append(" EMA " + ema.getEmaLength() + " =" + ema.getLast().toString().substring(0, 5));
+            strategyLogMsg.append(" EMA ").append(ema.getEmaLength()).append(" =").append(ema.getLast().toString(), 0, 5);
         }
         if(settings.getAtrTarget() != 0.0 || settings.getAtrStopLoss() != 0){
             atr.calc();
-            strategyLogMsg.append(" ATR = " + String.format("%.5f", atr.getLast()));
+            strategyLogMsg.append(" ATR = ").append(String.format("%.5f", atr.getLast()));
         }
         if(settings.getStrategy().isUsingCmf() && values.size() > cmf.getCmfLength()){
             cmf.calc();
-            strategyLogMsg.append(" CMF =" + String.format("%.4f", cmf.getLast()).substring(0, 5));
+            strategyLogMsg.append(" CMF =").append(String.format("%.4f", cmf.getLast()), 0, 5);
         }
         if(settings.getStrategy().isUsingMacd()){
             macd.calc();
-            strategyLogMsg.append(" MACD Histo =" + String.format("%.5f",macd.getLastHistogram()));
-            strategyLogMsg.append(" Extr Histo =" + String.format("%.5f",macd.extrapolatedHistogram()));
+            strategyLogMsg.append(" MACD Histo =").append(String.format("%.5f", macd.getLastHistogram()));
+            strategyLogMsg.append(" Extr Histo =").append(String.format("%.5f", macd.extrapolatedHistogram()));
         }
         log.info(strategyLogMsg.toString());
         if(bought){
@@ -148,10 +147,10 @@ public class BotLogic {
     }
 
     public void setCandleList(List <BpCandlestick> _candleList){
-        for(int i = 0; i < _candleList.size() ; i++){
-            this.addCandle(_candleList.get(i));
+        for (BpCandlestick bpCandlestick : _candleList) {
+            this.addCandle(bpCandlestick);
         }
-        log.debug("Set list:\n" + candleList.toString());
+        log.debug("Set list:\n" + candleList);
     }
 
     public BpCandlestick getLastCandle(){

@@ -18,7 +18,7 @@ public class BpCandlestick {
         low = 1;
         high = 1;
         open = 1;
-        instrument_code = new String();
+        instrument_code = "";
     }
 
     public BpCandlestick(double close){

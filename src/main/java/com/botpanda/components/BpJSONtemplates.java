@@ -26,7 +26,7 @@ public class BpJSONtemplates {
     private Gson gson = new Gson();
 
     public String authentication(String key){
-        output = new String("{\"type\": \"AUTHENTICATE\", \"api_token\": \"" + key + "\"}");
+        output = "{\"type\": \"AUTHENTICATE\", \"api_token\": \"" + key + "\"}";
         log.debug(output);
         return output;
     }
@@ -38,7 +38,7 @@ public class BpJSONtemplates {
             .put(new JSONObject().put("name", "CANDLESTICKS")
             .put("properties", new JSONArray()
                 .put(new JSONObject()
-                    .put("instrument_code", new String(fromCurrency + "_" + toCurrency))
+                    .put("instrument_code", fromCurrency + "_" + toCurrency)
                     .put("time_granularity", new JSONObject()
                         .put("unit", unit)
                         .put("period", period)
@@ -73,7 +73,7 @@ public class BpJSONtemplates {
 
     public List<BpCandlestick> parseCandleList(String candleListJSON){
         JSONArray ja = new JSONArray(candleListJSON);
-        List<BpCandlestick> list = new ArrayList<BpCandlestick>();
+        List<BpCandlestick> list = new ArrayList<>();
         for(int i = 0; i < ja.length(); i++){
             list.add(parseCandle(ja.get(i).toString()));
         }
@@ -97,7 +97,7 @@ public class BpJSONtemplates {
         }else{
             strAmount = bd.toPlainString();
         }
-        String strOrder = gson.toJson(new Order(new String(fromCurrency.name() + "_" + toCurrency.name()), side.name(), strAmount));
+        String strOrder = gson.toJson(new Order(fromCurrency.name() + "_" + toCurrency.name(), side.name(), strAmount));
         JSONObject order = new JSONObject(strOrder);
         JSONObject json = new JSONObject()
             .put("type", "CREATE_ORDER")

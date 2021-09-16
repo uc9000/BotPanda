@@ -13,39 +13,39 @@ public class homeController {
 
     BotSettings settings = new BotSettings();
     @Autowired
-    BpConnectivity bpConnecion;
+    BpConnectivity bpConnection;
 
 
     @GetMapping("/start")
     public String home(){
         //settings.setTestingMode(true);
-        bpConnecion.setSettings(settings);
-        bpConnecion.connect();
+        bpConnection.setSettings(settings);
+        bpConnection.connect();
         System.out.println(settings.toString());
         return "index";
     }
 
     @GetMapping("/auth")
     public String auth(@RequestParam(required = false, name = "key", defaultValue = "") String apiKey){
-        bpConnecion.authenticate(apiKey);
+        bpConnection.authenticate(apiKey);
         return "index";
     }
     
     @GetMapping("/subToCandles" )
     public String subscribeToCandles(){        
-        bpConnecion.subscribeToCandles();
+        bpConnection.subscribeToCandles();
         return "index";
     }
 
     @GetMapping("/subToOrders")
     public String subscribeToOrders(){
-        bpConnecion.subscribeToOrders();
+        bpConnection.subscribeToOrders();
         return "index";
     }
 
     @GetMapping("/close")
     public String close(@RequestParam(name = "sell", defaultValue = "false", required = false) boolean sell){
-        bpConnecion.closeConnection(sell);
+        bpConnection.closeConnection(sell);
         return "index";
     }
 }
