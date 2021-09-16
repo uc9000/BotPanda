@@ -11,7 +11,7 @@ public class ChaikinMoneyFlow implements Indicator {
     @Setter
     private ArrayList<BpCandlestick> candles;
     @Getter
-    private ArrayList<Double> cmfList = new ArrayList<Double>();
+    private final ArrayList<Double> cmfList = new ArrayList<>();
     @Getter
     private Double last = 0.0;
     @Setter @Getter

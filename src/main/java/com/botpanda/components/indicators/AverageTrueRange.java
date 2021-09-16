@@ -13,7 +13,7 @@ public class AverageTrueRange implements Indicator{
     @Setter
     private ArrayList<BpCandlestick> candles;
     @Getter
-    private ArrayList<Double> atrList = new ArrayList<Double>();
+    private final ArrayList<Double> atrList = new ArrayList<>();
     @Getter
     private Double last = 0.0;
     @Setter @Getter
@@ -25,11 +25,11 @@ public class AverageTrueRange implements Indicator{
             last = 0.0;
             return last;
         }
-        ArrayList<Double> TrVarsList = new ArrayList<Double>();
-        ArrayList<Double> TrList = new ArrayList<Double>();
+        ArrayList<Double> TrVarsList = new ArrayList<>();
+        ArrayList<Double> TrList = new ArrayList<>();
         for(int i = candles.size() - atrLength ; i < candles.size() ; i++){
             BpCandlestick candle = candles.get(i);
-            Double prevClose = candles.get(i-1).getClose();
+            double prevClose = candles.get(i-1).getClose();
             TrVarsList.clear();
             TrVarsList.add(candle.getHigh() - candle.getLow());
             TrVarsList.add(candle.getHigh() - prevClose);

@@ -9,7 +9,7 @@ import com.botpanda.components.indicators.AverageTrueRange;
 import com.botpanda.components.indicators.ChaikinMoneyFlow;
 import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.components.indicators.MACD;
-import com.botpanda.components.indicators.RelativeStrenghtIndex;
+import com.botpanda.components.indicators.RelativeStrengthIndex;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Strategy;
 
@@ -36,7 +36,7 @@ public class BotLogic {
 
     private final RiskManagement riskManagement;
 
-    public RelativeStrenghtIndex rsi = new RelativeStrenghtIndex();
+    public RelativeStrengthIndex rsi = new RelativeStrengthIndex();
     public ExponentialMovingAverage ema = new ExponentialMovingAverage();
     public MACD macd = new MACD();
     public AverageTrueRange atr = new AverageTrueRange();

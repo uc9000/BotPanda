@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ExponentialMovingAverage implements Indicator{
     @Getter
-    private ArrayList<Double> emaList = new ArrayList<Double>();
+    private final ArrayList<Double> emaList = new ArrayList<>();
     @Getter
     private Double last;
     @Setter
@@ -18,7 +18,7 @@ public class ExponentialMovingAverage implements Indicator{
     private int emaLength = 50, maxEmaListLength = 3;
 
     private Double currentEma(Double close, Double previous){        
-        Double multiplier = (2.0 / (emaLength + 1));
+        double multiplier = (2.0 / (emaLength + 1));
         return multiplier * (close - previous) + previous;
     }
 

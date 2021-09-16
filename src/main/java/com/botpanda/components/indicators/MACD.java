@@ -9,15 +9,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MACD implements Indicator{
     @Getter
-    private ArrayList<Double> macd   = new ArrayList<Double>();
+    private final ArrayList<Double> macd   = new ArrayList<>();
     @Getter
-    private ArrayList<Double> signal = new ArrayList<Double>();
+    private final ArrayList<Double> signal = new ArrayList<>();
     @Getter
-    private ArrayList<Double> histogram = new ArrayList<Double>();
-    private ArrayList<Double> values = new ArrayList<Double>();
-    private ExponentialMovingAverage fastEma = new ExponentialMovingAverage();
-    private ExponentialMovingAverage slowEma = new ExponentialMovingAverage();
-    private ExponentialMovingAverage signalEma = new ExponentialMovingAverage();
+    private final ArrayList<Double> histogram = new ArrayList<>();
+    private ArrayList<Double> values = new ArrayList<>();
+    private final ExponentialMovingAverage fastEma = new ExponentialMovingAverage();
+    private final ExponentialMovingAverage slowEma = new ExponentialMovingAverage();
+    private final ExponentialMovingAverage signalEma = new ExponentialMovingAverage();
     @Getter @Setter
     private int listLength = 6;
     @Getter @Setter
@@ -78,7 +78,7 @@ public class MACD implements Indicator{
 
     private boolean changedOnce(int range){
         int start = histogram.size() - range;
-        start = (start < 0) ? 0 : start;
+        start = Math.max(start, 0);
         int changed = 0;
         boolean positive = histogram.get(0) > 0;
         for(int i = start ; i < histogram.size() -1; i++){
@@ -90,30 +90,21 @@ public class MACD implements Indicator{
                 return false;
             }
         }
-        if(changed == 1){
-            return true;
-        }
-        return false;
+        return changed == 1;
     }
 
     @Override
     public boolean shouldBuy() {
-        if(changedOnce(3) 
-        && 
-        (lastHistogram > 0 || extrapolatedHistogram() > 0)){
-            return true;
-        }
-        return false;
+        return changedOnce(3)
+                &&
+                (lastHistogram > 0 || extrapolatedHistogram() > 0);
     }
 
     @Override
     public boolean shouldSell() {
-        if(changedOnce(3)
-        && 
-        (lastHistogram < 0 || extrapolatedHistogram() < 0)){
-            return true;
-        }
-        return false;
+        return changedOnce(3)
+                &&
+                (lastHistogram < 0 || extrapolatedHistogram() < 0);
     }
 
     @Override
