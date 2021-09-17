@@ -45,12 +45,6 @@ public class MACD implements Indicator{
         setValues(values);
     }
 
-    public Double extrapolatedHistogram(){        
-        Double change = histogram.get(listLength - 1) - histogram.get(listLength - 2);
-        log.info("Avg change: " + change);
-        return last + change;
-    }
-
     @Override
     public Double calc() {
         last = fastEma.calc() - slowEma.calc();

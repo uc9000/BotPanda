@@ -53,8 +53,8 @@ public class BpConnectivity {
     }
 
     //CONSTRUCTORS:
-    public BpConnectivity(BpJSONtemplates jsonTemplate){
-        this.jsonTemplate = jsonTemplate;
+    public BpConnectivity(){
+        this.jsonTemplate = new BpJSONtemplates();
         settings = new BotSettings();
         botLogic.setSettings(settings);
     }
@@ -106,9 +106,11 @@ public class BpConnectivity {
             }
             String strMsg = message.toString();
             String type = jsonTemplate.getJSONtype(strMsg);
-            if(!type.equals("HEARTBEAT") && !type.equals("CANDLESTICK")){ // print everything except heartbeats
+//            if(!type.equals("HEARTBEAT")
+//                    //&& !type.equals("CANDLESTICK")
+//            ){ // print everything except heartbeats
                 log.info("received message: " + new JSONObject(strMsg).toString(4));
-            }
+            //}
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){                
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
                 handleNewCandle();
