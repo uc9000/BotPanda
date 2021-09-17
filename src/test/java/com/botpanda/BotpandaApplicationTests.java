@@ -7,8 +7,8 @@ import java.util.List;
 
 import com.botpanda.components.BotLogic;
 import com.botpanda.components.BotSettings;
-import com.botpanda.components.BpConnectivity;
-import com.botpanda.components.BpJSONtemplates;
+import com.botpanda.components.connection.BpConnectivity;
+import com.botpanda.components.connection.BpJSONtemplates;
 import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Currency;

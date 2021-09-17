@@ -36,11 +36,11 @@ public class BotLogic {
 
     private final RiskManagement riskManagement;
 
-    public RelativeStrengthIndex rsi = new RelativeStrengthIndex();
-    public ExponentialMovingAverage ema = new ExponentialMovingAverage();
-    public MACD macd = new MACD();
-    public AverageTrueRange atr = new AverageTrueRange();
-    public ChaikinMoneyFlow cmf = new ChaikinMoneyFlow();
+    public final RelativeStrengthIndex rsi = new RelativeStrengthIndex();
+    public final ExponentialMovingAverage ema = new ExponentialMovingAverage();
+    public final MACD macd = new MACD();
+    public final AverageTrueRange atr = new AverageTrueRange();
+    public final ChaikinMoneyFlow cmf = new ChaikinMoneyFlow();
 
     //Constructors:
     public BotLogic(){
@@ -135,7 +135,6 @@ public class BotLogic {
         if(settings.getStrategy().isUsingMacd()){
             macd.calc();
             strategyLogMsg.append(" MACD Histo =").append(String.format("%.5f", macd.getLastHistogram()));
-            strategyLogMsg.append(" Extr Histo =").append(String.format("%.5f", macd.extrapolatedHistogram()));
         }
         log.info(strategyLogMsg.toString());
         if(bought){

@@ -1,4 +1,4 @@
-package com.botpanda.components;
+package com.botpanda.components.connection;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,6 +20,8 @@ import java.time.ZoneOffset;
 import java.util.Objects;
 import java.util.concurrent.CompletionStage;
 
+import com.botpanda.components.BotLogic;
+import com.botpanda.components.BotSettings;
 import com.botpanda.entities.Order;
 import com.botpanda.entities.enums.OrderSide;
 
@@ -106,11 +108,11 @@ public class BpConnectivity {
             }
             String strMsg = message.toString();
             String type = jsonTemplate.getJSONtype(strMsg);
-//            if(!type.equals("HEARTBEAT")
-//                    //&& !type.equals("CANDLESTICK")
-//            ){ // print everything except heartbeats
+            if(!type.equals("HEARTBEAT")
+                    && !type.equals("CANDLESTICK")
+            ){ // print everything except heartbeats
                 log.info("received message: " + new JSONObject(strMsg).toString(4));
-            //}
+            }
             if(type.equals("CANDLESTICK") || type.equals("CANDLESTICK_SNAPSHOT")){                
                 botLogic.addCandle(jsonTemplate.parseCandle(strMsg));
                 handleNewCandle();
@@ -212,7 +214,7 @@ public class BpConnectivity {
         }
         botLogic.setCandleList(jsonTemplate.parseCandleList(getAllCandles()));
         ws.sendText(
-            jsonTemplate.subscribtionToCandles(
+            jsonTemplate.subscriptionToCandles(
                 settings.getFromCurrency().name(),
                 settings.getToCurrency().name(),
                 settings.getPeriod(),

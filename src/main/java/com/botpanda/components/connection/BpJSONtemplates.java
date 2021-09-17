@@ -1,4 +1,4 @@
-package com.botpanda.components;
+package com.botpanda.components.connection;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,7 +31,7 @@ public class BpJSONtemplates {
         return output;
     }
 
-    public String subscribtionToCandles(String fromCurrency, String toCurrency, int period, String unit){
+    public String subscriptionToCandles(String fromCurrency, String toCurrency, int period, String unit){
         JSONObject jo = new JSONObject();
         jo.put("type", "SUBSCRIBE")
         .put("channels", new JSONArray()

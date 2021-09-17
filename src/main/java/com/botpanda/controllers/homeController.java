@@ -1,7 +1,7 @@
 package com.botpanda.controllers;
 
 import com.botpanda.components.BotSettings;
-import com.botpanda.components.BpConnectivity;
+import com.botpanda.components.connection.BpConnectivity;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
