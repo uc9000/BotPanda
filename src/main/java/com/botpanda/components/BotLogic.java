@@ -168,9 +168,9 @@ public class BotLogic {
     }
 
     public double amountToBuy(){
-        double amount = settings.getFiatAmountLimit() / lastClosing;
-        if (amount > settings.getFiatAmountLimit()){
-            amount = settings.getFiatAmountLimit();
+        double amount = settings.getCryptoAmountLimit() / lastClosing;
+        if (amount > settings.getCryptoAmountLimit()){
+            amount = settings.getCryptoAmountLimit();
         }
         boughtFor = amount;
         return amount;
