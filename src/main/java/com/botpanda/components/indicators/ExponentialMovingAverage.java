@@ -22,6 +22,10 @@ public class ExponentialMovingAverage implements Indicator{
         return multiplier * (close - previous) + previous;
     }
 
+    private double lastValue(){
+        return values.get(values.size()-1);
+    }
+
     public static Double simpleAverage(ArrayList<Double> values, int firstElements){
         if(values.size() < 1){
             return 0.0;
@@ -45,7 +49,7 @@ public class ExponentialMovingAverage implements Indicator{
             emaList.add(last);
             return last;
         }
-        emaList.add(currentEma(values.get(values.size() - 1), last));
+        emaList.add(currentEma(lastValue(), last));
         last = emaList.get(emaList.size() - 1);
         if(emaList.size() > maxEmaListLength){
             emaList.remove(0);
@@ -56,7 +60,7 @@ public class ExponentialMovingAverage implements Indicator{
 
     @Override
     public boolean shouldBuy() {
-        if(values.get(values.size() - 1) > last){
+        if(lastValue() > last){
             log.debug("BUY signal EMA");
             return true;
         }
@@ -64,7 +68,7 @@ public class ExponentialMovingAverage implements Indicator{
     }
     @Override
     public boolean shouldSell() {
-        if(values.get(values.size() - 1) > last){
+        if(lastValue() > last){
             return false;
         }
         log.debug("SELL signal EMA");

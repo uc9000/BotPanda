@@ -1,71 +1,53 @@
 package com.botpanda.components;
 
-import java.util.ArrayList;
-
-import com.botpanda.components.indicators.AverageTrueRange;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
 
 public class RiskManagement {
     @Getter
     private Double stopLossPrice = 0.0, targetPrice = 0.0;
     @Getter @Setter
     private Double entryPrice = 0.0;
-    @Getter
+    @Getter @Setter
     private Double entryAtr;
     @Setter
     private BotSettings settings;
     @Setter
-    private AverageTrueRange atr;
-    @Setter
     private ArrayList<Double> values;
 
-    public RiskManagement(BotSettings settings, AverageTrueRange atr, ArrayList<Double> values){
+
+    public void setReferences(BotSettings settings, ArrayList<Double> values){
         this.setSettings(settings);
         this.setValues(values);
-        this.setAtr(atr);
+    }
+
+    private double lastValue(){
+        return values.get(values.size() - 1);
     }
 
     private boolean hardTargetReached(){
-        if(entryPrice * (settings.getTarget() + 1) < values.get(values.size()-1)){
-            return true;
-        }
-        return false;
+        return entryPrice * (settings.getTarget() + 1) < lastValue();
     }
 
     private boolean atrTargetReached(){
-        if(settings.getAtrTarget() * entryAtr + entryPrice < values.get(values.size()-1)){
-            return true;
-        }
-        return false;
+        return settings.getAtrTarget() * entryAtr + entryPrice < lastValue();
     }
 
     private boolean hardStopLossReached(){
-        if(entryPrice * (1 - settings.getStopLoss()) > values.get(values.size()-1)){
-            return true;
-        }
-        return false;
+        return entryPrice * (1 - settings.getStopLoss()) > lastValue();
     }
 
     private boolean atrStopLossReached(){
-        if(entryPrice - (settings.getAtrStopLoss() * entryAtr) > values.get(values.size()-1)){
-            return true;
-        }
-        return false;
+        return entryPrice - (settings.getAtrStopLoss() * entryAtr) > lastValue();
     }
 
     public boolean targetReached(){
-        if(hardTargetReached() || atrTargetReached()){
-            return true;
-        }        
-        return false;
+        return hardTargetReached() || atrTargetReached();
     }
 
     public boolean stopLossReached(){
-        if(hardStopLossReached() || atrStopLossReached()){
-            return true;
-        }
-        return false;
+        return hardStopLossReached() || atrStopLossReached();
     }
 }

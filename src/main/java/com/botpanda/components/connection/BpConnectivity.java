@@ -41,10 +41,9 @@ public class BpConnectivity {
     authenticated = false,
     subscribedToOrders = false,
     subscribedToCandles = false,
-    //subscribedToAccountHistory = false,
     reconnecting = false;
     private final BotLogic botLogic = new BotLogic();
-    private BotSettings settings = new BotSettings();
+    private BotSettings settings;
 
     @Autowired
     private final BpJSONtemplates jsonTemplate;
@@ -87,7 +86,6 @@ public class BpConnectivity {
             subscribedToOrders = false;
             authenticated = false;
             subscribedToCandles = false;
-            //subscribedToAccountHistory = false;
             reconnecting = true;
             connect();            
             return null;
@@ -119,7 +117,7 @@ public class BpConnectivity {
             }
             else if(!settings.isTestingMode() && type.equals("ORDER_CREATED")){
                 Order order = jsonTemplate.parseOrder(new JSONObject(strMsg).get("order").toString());
-                botLogic.setBought(order.getSide().equals("BUY"));
+                botLogic.setBought(order.getSide().equals(OrderSide.BUY.name()));
             }
             else if(type.equals("SUBSCRIPTIONS")){
                 JSONArray channels = new JSONObject(strMsg).getJSONArray("channels");
@@ -152,13 +150,13 @@ public class BpConnectivity {
     //REST API METHODS
     public String getAllCandles(){
         String instrumentCodes = settings.getFromCurrency() + "_" + settings.getToCurrency() + "?";
-        OffsetDateTime fromDate = date.minusMinutes((long) settings.getMaxCandles() * 4 * settings.getPeriod());
+        OffsetDateTime fromDate = date.minusMinutes((long) settings.getMaxCandles() * 4 * settings.getTimeGranularity().getMinutes());
         String fromDateStr = URLEncoder.encode(fromDate.toString(), StandardCharsets.UTF_8);
         String params = instrumentCodes
-                + "unit=" + settings.getUnit() + "&period=" + settings.getPeriod()
+                + "unit=" + settings.getTimeGranularity().getUnit().name() + "&period=" + settings.getTimeGranularity().getPeriod()
                 + "&from=" + fromDateStr + "&to=" + URLEncoder.encode(date.toString(), StandardCharsets.UTF_8);
         String restUrl = REST_URL + params;
-        //System.out.println(restUrl);
+        //log(restUrl);
         StringBuilder response = new StringBuilder();
         try{
             URL url = new URL(restUrl);
@@ -175,7 +173,6 @@ public class BpConnectivity {
             return response.toString();
         }catch (Exception e){
             e.printStackTrace();
-            
         }
         return "GET CANDLES FAILED";
     }
@@ -185,7 +182,7 @@ public class BpConnectivity {
         botLogic.clearAll();
         reconnecting = true;
         try {
-            ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(20)).buildAsync(new URI(WS_URL), wsListener).join();
+            ws = HttpClient.newHttpClient().newWebSocketBuilder().connectTimeout(Duration.ofSeconds(11)).buildAsync(new URI(WS_URL), wsListener).join();
         } catch (URISyntaxException e) {
             connected = false;
             e.printStackTrace();
@@ -217,11 +214,9 @@ public class BpConnectivity {
             jsonTemplate.subscriptionToCandles(
                 settings.getFromCurrency().name(),
                 settings.getToCurrency().name(),
-                settings.getPeriod(),
-                settings.getUnit().name()
-            ),
-            true
-        );        
+                settings.getTimeGranularity().getPeriod(),
+                settings.getTimeGranularity().getUnit().name()
+            ),true);
     }
 
     public void subscribeToOrders(){
@@ -229,10 +224,7 @@ public class BpConnectivity {
             log.warn("Can't subscribe to orders, not authenticated yet");
             return;
         }
-        ws.sendText(
-            jsonTemplate.subscriptionToOrders(),
-            true
-        );
+        ws.sendText(jsonTemplate.subscriptionToOrders(),true);
     }
 
     public void sendMarketOrder(OrderSide side, double amount){
@@ -258,29 +250,30 @@ public class BpConnectivity {
         subscribedToOrders = false;
     }
 
-    public void handleNewCandle(){ // :) always call after adding new candle
+    public void handleNewCandle(){
         if(botLogic.shouldBuy()){
             if(!settings.isTestingMode()){
                 sendMarketOrder(OrderSide.BUY, botLogic.amountToBuy());
+            }else {
+                botLogic.setBought(true);
             }
             log.warn(
                 "BUYING " + botLogic.getBoughtFor() + " " 
                 + settings.getFromCurrency().name() + " at price: " 
                 + botLogic.getBuyingPrice()
-            );                    
-            botLogic.setBought(true);            
+            );
         }
         else if(botLogic.shouldSell()){
             if(!settings.isTestingMode()){
                 sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
+            }else {
+                botLogic.setBought(false);
             }
             log.warn(
                 "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
                 + " at price: " + botLogic.getLastClosing()
                 + "  with gain [%] : " + 100 * botLogic.currentGain()
             );
-            botLogic.setBought(false);
-            
         }
         else if (botLogic.isBought()){
             log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());

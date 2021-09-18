@@ -34,7 +34,7 @@ public class BotLogic {
     @Getter
     private final static double MAKER_FEE = 0.001 , TAKER_FEE = 0.0015;
 
-    private final RiskManagement riskManagement;
+    private final RiskManagement riskManagement = new RiskManagement();
 
     public final RelativeStrengthIndex rsi = new RelativeStrengthIndex();
     public final ExponentialMovingAverage ema = new ExponentialMovingAverage();
@@ -48,7 +48,7 @@ public class BotLogic {
         ema.setValues(values);
         macd.setValues(values);
         atr.setCandles(candleList);
-        riskManagement = new RiskManagement(settings, atr, values);
+        riskManagement.setReferences(settings, values);
         cmf.setCandles(candleList);
     }
 
@@ -77,6 +77,7 @@ public class BotLogic {
         if (bought){
             return false;
         }
+        riskManagement.setEntryAtr(atr.getLast());
         riskManagement.setEntryPrice(lastClosing);
         buyingPrice = lastClosing;
         return true;
@@ -97,15 +98,13 @@ public class BotLogic {
             return false;
         }
         riskManagement.setEntryPrice(0.0);
+        riskManagement.setEntryAtr(0.0);
         sellingPrice = lastClosing;
         return true;
     }
 
     public void addCandle(BpCandlestick candle){
         StringBuilder strategyLogMsg = new StringBuilder();
-        // + " Vo: " + String.format("%.1f", candle.getVolume())
-        // + " Hi: " + candle.getHigh()
-        // + " Lo: " + candle.getLow()
         strategyLogMsg.append("CL: ").append(String.format("%.5f", candle.getClose()), 0, 7);
         lastClosing = candle.getClose();
         this.values.add(lastClosing);
@@ -169,9 +168,9 @@ public class BotLogic {
     }
 
     public double amountToBuy(){
-        double amount = settings.getFiatPriceLimit() / lastClosing;         
-        if (amount > settings.getCryptoPriceLimit()){
-            amount = settings.getCryptoPriceLimit();
+        double amount = settings.getFiatAmountLimit() / lastClosing;
+        if (amount > settings.getFiatAmountLimit()){
+            amount = settings.getFiatAmountLimit();
         }
         boughtFor = amount;
         return amount;
@@ -183,11 +182,11 @@ public class BotLogic {
     }
 
     public void clearAll(){
-        values.clear();
-        rsi.clear();
-        macd.clear();
-        ema.clear();
-        atr.clear();    
-        cmf.clear(); 
+        values .clear();
+        rsi    .clear();
+        macd   .clear();
+        ema    .clear();
+        atr    .clear();
+        cmf    .clear();
     }
 }

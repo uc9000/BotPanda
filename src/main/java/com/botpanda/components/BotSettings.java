@@ -2,7 +2,7 @@ package com.botpanda.components;
 
 import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.Strategy;
-import com.botpanda.entities.enums.Unit;
+import com.botpanda.entities.enums.TimeGranularity;
 
 import lombok.Data;
 
@@ -10,12 +10,12 @@ import lombok.Data;
 @Data
 public class BotSettings {
     private Currency fromCurrency, toCurrency;
-    private Unit unit;
-    private int period, maxCandles;
+    private TimeGranularity timeGranularity;
+    private int maxCandles;
     private boolean started = false;
     private boolean testingMode = true;
-    private double fiatPriceLimit; // Max trade amount of your default fiat currency (EUR or USD)
-    private double cryptoPriceLimit; // Max trade amount of your crypto currency (BTC, ETH etc.)
+    private double fiatAmountLimit; // Max trade amount of your default fiat currency (EUR or USD)
+    private double cryptoAmountLimit; // Max trade amount of your crypto currency (BTC, ETH etc.)
     private double stopLoss; // Fraction of price you don't want to go below - 0.01 means it will sell when gain is below -1% of buying price
     private double atrStopLoss;
     private double safetyFactor;
@@ -30,14 +30,13 @@ public class BotSettings {
 
     //default settings
     public BotSettings(){
-        unit = Unit.MINUTES;
-        period = 1;
+        timeGranularity = TimeGranularity.MINUTES5;
         fromCurrency = Currency.BTC;
         toCurrency = Currency.EUR;
         maxCandles = 200;
         safetyFactor = 2;
-        fiatPriceLimit = 25;
-        cryptoPriceLimit = 500;
+        fiatAmountLimit = 25;
+        cryptoAmountLimit = 500;
         stopLoss = 0.01;
         atrStopLoss = 2;
         target = 0.04;
