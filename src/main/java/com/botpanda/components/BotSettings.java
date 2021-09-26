@@ -30,10 +30,10 @@ public class BotSettings {
 
     //default settings
     public BotSettings(){
-        timeGranularity = TimeGranularity.MINUTES5;
+        timeGranularity = TimeGranularity.MINUTES1;
         fromCurrency = Currency.BTC;
         toCurrency = Currency.EUR;
-        maxCandles = 200;
+        maxCandles = 60;
         safetyFactor = 2;
         fiatAmountLimit = 25;
         cryptoAmountLimit = 500;
@@ -50,6 +50,6 @@ public class BotSettings {
             maxCandles = rsiLength + 1;
         }
         strategy = Strategy.MACD_CMF;
-        emaLength = 200;
+        emaLength = 50;
     }
 }

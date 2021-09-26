@@ -63,9 +63,11 @@ public class BotLogic {
         rsi.setRsiLength(settings.getRsiLength());
         ema.setEmaLength(settings.getEmaLength());
         atr.setAtrLength(settings.getAtrLength());
+        riskManagement.setSettings(settings);
     }
 
-    public boolean shouldBuy(){        
+    public boolean shouldBuy(){
+        if (bought){ return false; }
         if(settings.getStrategy().equals(Strategy.RSI_AND_EMA) && !rsi.shouldBuy())
             { return false; }
         if(settings.getStrategy().isUsingEma() && !ema.shouldBuy())  { return false; }
@@ -73,10 +75,6 @@ public class BotLogic {
         if(settings.getStrategy().isUsingMacd() && !macd.shouldBuy()){ return false; }
         else if(settings.getStrategy().equals(Strategy.MACD_RSI_EMA) && rsi.getLast() < 50.0)
             { return false; }
-        
-        if (bought){
-            return false;
-        }
         riskManagement.setEntryAtr(atr.getLast());
         riskManagement.setEntryPrice(lastClosing);
         buyingPrice = lastClosing;
@@ -139,7 +137,7 @@ public class BotLogic {
         if(bought){
             gainList.add(currentGain());
         }
-        if (gainList.size() > settings.getSafetyFactor()){
+        if (gainList.size() > 5){
             gainList.remove(0);
         }
     }

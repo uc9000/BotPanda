@@ -2,12 +2,12 @@ package com.botpanda.components;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 
+@Slf4j
 public class RiskManagement {
-    @Getter
-    private Double stopLossPrice = 0.0, targetPrice = 0.0;
     @Getter @Setter
     private Double entryPrice = 0.0;
     @Getter @Setter
@@ -23,31 +23,24 @@ public class RiskManagement {
         this.setValues(values);
     }
 
-    private double lastValue(){
-        return values.get(values.size() - 1);
-    }
+    private double lastValue()
+        { return values.get(values.size() - 1); }
 
-    private boolean hardTargetReached(){
-        return entryPrice * (settings.getTarget() + 1) < lastValue();
-    }
+    private boolean hardTargetReached()
+        { return (entryPrice * (settings.getTarget() + 1)) < lastValue(); }
 
-    private boolean atrTargetReached(){
-        return settings.getAtrTarget() * entryAtr + entryPrice < lastValue();
-    }
+    private boolean atrTargetReached()
+        { return settings.getAtrTarget() * entryAtr + entryPrice < lastValue(); }
 
-    private boolean hardStopLossReached(){
-        return entryPrice * (1 - settings.getStopLoss()) > lastValue();
-    }
+    private boolean hardStopLossReached()
+        { return entryPrice * (1 - settings.getStopLoss()) > lastValue(); }
 
-    private boolean atrStopLossReached(){
-        return entryPrice - (settings.getAtrStopLoss() * entryAtr) > lastValue();
-    }
+    private boolean atrStopLossReached()
+        { return entryPrice - (settings.getAtrStopLoss() * entryAtr) > lastValue(); }
 
-    public boolean targetReached(){
-        return hardTargetReached() || atrTargetReached();
-    }
+    public boolean targetReached()
+        { return hardTargetReached() || atrTargetReached(); }
 
-    public boolean stopLossReached(){
-        return hardStopLossReached() || atrStopLossReached();
-    }
+    public boolean stopLossReached()
+        { return hardStopLossReached() || atrStopLossReached(); }
 }

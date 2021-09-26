@@ -2,6 +2,8 @@ package com.botpanda.entities;
 
 import lombok.Data;
 
+import java.util.Date;
+
 
 @Data
 public class BpCandlestick {
@@ -12,6 +14,7 @@ public class BpCandlestick {
     private double close;
     private double total_amount;
     private double volume;
+    private Date time;
 
     public BpCandlestick(){
         close = 1;

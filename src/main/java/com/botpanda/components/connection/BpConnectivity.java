@@ -262,8 +262,9 @@ public class BpConnectivity {
                 + settings.getFromCurrency().name() + " at price: " 
                 + botLogic.getBuyingPrice()
             );
+            return;
         }
-        else if(botLogic.shouldSell()){
+        if(botLogic.shouldSell()){
             if(!settings.isTestingMode()){
                 sendMarketOrder(OrderSide.SELL, botLogic.amountToSell());
             }else {
@@ -274,8 +275,9 @@ public class BpConnectivity {
                 + " at price: " + botLogic.getLastClosing()
                 + "  with gain [%] : " + 100 * botLogic.currentGain()
             );
+            return;
         }
-        else if (botLogic.isBought()){
+        if (botLogic.isBought()){
             log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
         }
         else{

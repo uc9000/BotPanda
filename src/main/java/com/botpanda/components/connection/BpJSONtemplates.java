@@ -11,6 +11,7 @@ import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.OrderSide;
 import com.google.gson.Gson;
 
+import com.google.gson.GsonBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BpJSONtemplates {
     private String output;
-    private Gson gson = new Gson();
+    private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
 
     public String authentication(String key){
         output = "{\"type\": \"AUTHENTICATE\", \"api_token\": \"" + key + "\"}";

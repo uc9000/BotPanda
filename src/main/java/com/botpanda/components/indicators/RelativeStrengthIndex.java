@@ -82,7 +82,7 @@ public class RelativeStrengthIndex implements Indicator{
                 return false;
             }
         }
-        log.debug("BUY signal RSI");
+        //log.debug("BUY signal RSI");
         return true;
     }
 
@@ -91,11 +91,8 @@ public class RelativeStrengthIndex implements Indicator{
         if(rsiList.size() < 2 || rsiList.get(rsiList.size() - 2) < maxRsi){
             return false;
         }
-        if (rsiList.get(rsiList.size() -1) > maxRsi){
-            return false;
-        }
-        log.info("SELL signal RSI");
-        return true;
+        return !(rsiList.get(rsiList.size() - 1) > maxRsi);
+        //log.debug("SELL signal RSI");
     }
 
     @Override
