@@ -1,5 +1,7 @@
 package com.botpanda.entities.enums;
 
+import com.google.gson.annotations.SerializedName;
+
 public enum TimeUnits{
     MINUTES(60),
     HOURS(3600);

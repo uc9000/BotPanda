@@ -3,12 +3,17 @@ package com.botpanda.components.connection;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.Order;
+import com.botpanda.entities.Property;
+import com.botpanda.entities.Subscribe;
 import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.OrderSide;
+import com.botpanda.entities.enums.TimeGranularity;
+import com.botpanda.entities.enums.TimeUnits;
 import com.google.gson.Gson;
 
 import com.google.gson.GsonBuilder;
@@ -33,30 +38,19 @@ public class BpJSONtemplates {
     }
 
     public String subscriptionToCandles(String fromCurrency, String toCurrency, int period, String unit){
-        JSONObject jo = new JSONObject();
-        jo.put("type", "SUBSCRIBE")
-        .put("channels", new JSONArray()
-            .put(new JSONObject().put("name", "CANDLESTICKS")
-            .put("properties", new JSONArray()
-                .put(new JSONObject()
-                    .put("instrument_code", fromCurrency + "_" + toCurrency)
-                    .put("time_granularity", new JSONObject()
-                        .put("unit", unit)
-                        .put("period", period)
-                    ) 
-                )
-            ))
-        );
-        output = jo.toString();
-        log.debug(output);
-        return output;
+        String instrumentCode = fromCurrency + "_" + toCurrency;
+        Subscribe sub = new Subscribe().forCandlesticks()
+                .withProperty(new Property(instrumentCode, TimeGranularity.findByValues(unit, period)))
+                .withProperty(new Property(instrumentCode, TimeGranularity.findByValues(TimeUnits.MINUTES, 1)));
+        return gson.toJson(sub);
     }
+
 
     public String subscriptionToOrders(){
         JSONObject jo = new JSONObject();
         jo.put("type", "SUBSCRIBE")
-        .put("channels", new JSONArray()
-            .put(new JSONObject().put("name", "ORDERS"))
+                .put("channels", new JSONArray()
+                .put(new JSONObject().put("name", "ORDERS"))
         );
         output = jo.toString();
         log.debug(output);
@@ -106,31 +100,4 @@ public class BpJSONtemplates {
         log.debug(json.toString(4));
         return json.toString();
     }
-
-    /*
-    public String subscriptionToAccountHistory(){
-        JSONObject jo = new JSONObject();
-        jo
-        .put("type", "SUBSCRIBE")
-        .put("bp_remaining_quota", 200)
-        .put("channels", new JSONArray()
-            .put(new JSONObject().put("name", "ACCOUNT_HISTORY"))
-        );
-        output = jo.toString();
-        log.debug(output);
-        return output;
-    }
-
-    public Balance parseBalance(String balanceJSON, Currency currency){
-        JSONArray balances = new JSONObject(balanceJSON).getJSONArray("balances");
-        for(int i = 0; i < balances.length(); i++){
-            Balance b = gson.fromJson(balances.get(i).toString(), Balance.class);
-            if(b.getCurrencyCode().equals(currency.name())){
-                log.info("balance: " + b.getAvailable());
-                return b;
-            }
-        }
-        return new Balance();
-    }
-    */
 }

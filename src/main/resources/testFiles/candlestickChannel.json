@@ -1,0 +1,24 @@
+{
+  "type": "SUBSCRIBE",
+  "channels": [
+    {
+      "name": "CANDLESTICKS",
+      "properties": [
+        {
+          "instrument_code": "BTC_EUR",
+          "time_granularity": {
+            "unit": "MINUTES",
+            "period": 5
+          }
+        },
+        {
+          "instrument_code": "BTC_EUR",
+          "time_granularity": {
+            "unit": "MINUTES",
+            "period": 1
+          }
+        }
+      ]
+    }
+  ]
+}

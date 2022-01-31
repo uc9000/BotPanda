@@ -1,5 +1,7 @@
 package com.botpanda.entities;
 
+import com.botpanda.entities.enums.TimeGranularity;
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 import java.util.Date;
@@ -16,16 +18,10 @@ public class BpCandlestick {
     private double volume;
     private Date time;
 
-    public BpCandlestick(){
-        close = 1;
-        low = 1;
-        high = 1;
-        open = 1;
-        instrument_code = "";
-    }
+    @SerializedName(value="time_granularity", alternate={"granularity"})
+    private TimeGranularity granularity;
 
     public BpCandlestick(double close){
-        this();
         this.close = close;
     }
 }

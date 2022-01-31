@@ -28,6 +28,7 @@ public class BotLogic {
     @Getter
     private final ArrayList <BpCandlestick> candleList  = new ArrayList<>();
     private final ArrayList <Double> values = new ArrayList<>(); //closing prices
+    private final ArrayList <Double> oneMinValues = new ArrayList<>(); //closing prices
     @Getter
     private final ArrayList <Double> gainList = new ArrayList<>();
     BotSettings settings;
@@ -48,7 +49,7 @@ public class BotLogic {
         ema.setValues(values);
         macd.setValues(values);
         atr.setCandles(candleList);
-        riskManagement.setReferences(settings, values);
+        riskManagement.setReferences(settings, oneMinValues);
         cmf.setCandles(candleList);
     }
 
@@ -115,23 +116,23 @@ public class BotLogic {
         }
         if(settings.getStrategy().isUsingRsi() && values.size() > rsi.getRsiLength()){
             rsi.calc();
-            strategyLogMsg.append(" RSI =").append(String.format("%.2f", rsi.getLast()));
+            strategyLogMsg.append(" RSI= ").append(String.format("%.2f", rsi.getLast()));
         }
         if(settings.getStrategy().isUsingEma()){
             ema.calc();
-            strategyLogMsg.append(" EMA ").append(ema.getEmaLength()).append(" =").append(ema.getLast().toString(), 0, 5);
+            strategyLogMsg.append(" EMA").append(ema.getEmaLength()).append("= ").append(ema.getLast().toString(), 0, 5);
         }
         if(settings.getAtrTarget() != 0.0 || settings.getAtrStopLoss() != 0){
             atr.calc();
-            strategyLogMsg.append(" ATR = ").append(String.format("%.5f", atr.getLast()));
+            strategyLogMsg.append(" ATR= ").append(String.format("%.5f", atr.getLast()));
         }
         if(settings.getStrategy().isUsingCmf() && values.size() > cmf.getCmfLength()){
             cmf.calc();
-            strategyLogMsg.append(" CMF =").append(String.format("%.4f", cmf.getLast()), 0, 5);
+            strategyLogMsg.append(" CMF= ").append(String.format("%.4f", cmf.getLast()), 0, 5);
         }
         if(settings.getStrategy().isUsingMacd()){
             macd.calc();
-            strategyLogMsg.append(" MACD Histo =").append(String.format("%.5f", macd.getLastHistogram()));
+            strategyLogMsg.append(" MACD Histo= ").append(String.format("%.5f", macd.getLastHistogram()));
         }
         log.info(strategyLogMsg.toString());
         if(bought){
@@ -166,7 +167,7 @@ public class BotLogic {
     }
 
     public double amountToBuy(){
-        double amount = settings.getCryptoAmountLimit() / lastClosing;
+        double amount = settings.getFiatAmountLimit() / lastClosing;
         if (amount > settings.getCryptoAmountLimit()){
             amount = settings.getCryptoAmountLimit();
         }
