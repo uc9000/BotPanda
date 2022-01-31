@@ -12,8 +12,6 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
-// @Component
-// @Scope(value = "prototype")
 @Slf4j
 public class BotLogic {
     @Getter
@@ -24,6 +22,8 @@ public class BotLogic {
     private final ArrayList <BpCandlestick> candleList  = new ArrayList<>();
     private final ArrayList <Double> values = new ArrayList<>(); //closing prices
     private final ArrayList <Double> oneMinValues = new ArrayList<>(); //closing prices
+    @Getter
+    private BpCandlestick lastCandle = null;
     @Getter
     private final ArrayList <Double> gainList = new ArrayList<>();
     BotSettings settings;
@@ -80,14 +80,18 @@ public class BotLogic {
                     + settings.getFromCurrency().name() + " at price: "
                     + getBuyingPrice()
         );
-
         return true;
     }
 
     public boolean shouldSell(){
+        final String logMsg = "SELLING " + getBoughtFor() + " " + settings.getFromCurrency().name()
+                        + " at price: " + getLastClosing()
+                        + "  with gain [%] : " + 100 * currentGain();
+
         if(!bought){ return false; }
         if(riskManagement.targetReached() || riskManagement.stopLossReached()){
             sellingPrice = lastClosing;
+            log.warn(logMsg);
             return true;
         }
         if(settings.getStrategy().equals(Strategy.RSI_AND_EMA) && !rsi.shouldSell())
@@ -101,10 +105,15 @@ public class BotLogic {
         riskManagement.setEntryPrice(0.0);
         riskManagement.setEntryAtr(0.0);
         sellingPrice = lastClosing;
+        log.warn(logMsg);
         return true;
     }
 
     public void addCandle(BpCandlestick candle){
+        if(lastCandle == candle){
+            return;
+        }
+        lastCandle = candle;
         StringBuilder strategyLogMsg = new StringBuilder();
         strategyLogMsg.append("CL: ").append(String.format("%.5f", candle.getClose()), 0, 7);
         lastClosing = candle.getClose();

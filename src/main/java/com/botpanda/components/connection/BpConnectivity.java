@@ -269,8 +269,8 @@ public class BpConnectivity {
         if (botLogic.isBought()){
             log.info("HOLD. Current gain [%]: " + 100 * botLogic.currentGain());
         }
-        else{
-            log.info("WAIT WITH BUYING");
-        }
+//        else if (botLogic.getLastCandle().getGranularity().equals(settings.getTimeGranularity())){
+//            log.info("WAIT WITH BUYING");
+//        }
     }
 }
