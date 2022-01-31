@@ -13,7 +13,7 @@ public class BotSettings {
     private TimeGranularity timeGranularity;
     private int maxCandles;
     private boolean started = false;
-    private boolean testingMode = false;
+    private boolean testingMode = true;
     private double fiatAmountLimit; // Max trade amount of your default fiat currency (EUR or USD)
     private double cryptoAmountLimit; // Max trade amount of your crypto currency (BTC, ETH etc.)
     private double stopLoss; // Fraction of price you don't want to go below - 0.01 means it will sell when gain is below -1% of buying price
@@ -30,7 +30,7 @@ public class BotSettings {
 
     //default settings
     public BotSettings(){
-        timeGranularity = TimeGranularity.MINUTES1;
+        timeGranularity = TimeGranularity.MINUTES5;
         fromCurrency = Currency.BTC;
         toCurrency = Currency.EUR;
         maxCandles = 60;

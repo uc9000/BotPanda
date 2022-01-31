@@ -1,21 +1,16 @@
 package com.botpanda.components;
 
+import com.botpanda.components.indicators.*;
+import com.botpanda.entities.BpCandlestick;
+import com.botpanda.entities.enums.Strategy;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.botpanda.components.indicators.AverageTrueRange;
-import com.botpanda.components.indicators.ChaikinMoneyFlow;
-import com.botpanda.components.indicators.ExponentialMovingAverage;
-import com.botpanda.components.indicators.MACD;
-import com.botpanda.components.indicators.RelativeStrengthIndex;
-import com.botpanda.entities.BpCandlestick;
-import com.botpanda.entities.enums.Strategy;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 // @Component
 // @Scope(value = "prototype")
@@ -79,6 +74,13 @@ public class BotLogic {
         riskManagement.setEntryAtr(atr.getLast());
         riskManagement.setEntryPrice(lastClosing);
         buyingPrice = lastClosing;
+
+        log.warn(
+            "BUYING " + getBoughtFor() + " "
+                    + settings.getFromCurrency().name() + " at price: "
+                    + getBuyingPrice()
+        );
+
         return true;
     }
 
@@ -106,8 +108,17 @@ public class BotLogic {
         StringBuilder strategyLogMsg = new StringBuilder();
         strategyLogMsg.append("CL: ").append(String.format("%.5f", candle.getClose()), 0, 7);
         lastClosing = candle.getClose();
-        this.values.add(lastClosing);
-        this.candleList.add(candle);
+        if(candle.getGranularity().equals(settings.getTimeGranularity())){
+            this.values.add(lastClosing);
+            this.candleList.add(candle);
+        }else{
+            return;
+        }
+        this.oneMinValues.add(lastClosing);
+        if (oneMinValues.size() > settings.getMaxCandles() + 1){
+            this.oneMinValues.remove(0);
+        }
+
         log.debug("List after adding candle: \n" + this.candleList + "\n Arr size: " + this.candleList.size());
         if(candleList.size() > settings.getMaxCandles() + 1){
             log.trace("Removing candle:\n" + this.candleList.get(0).toString() + "\n Arr size: " + this.candleList.size());
@@ -148,14 +159,6 @@ public class BotLogic {
             this.addCandle(bpCandlestick);
         }
         log.debug("Set list:\n" + candleList);
-    }
-
-    public BpCandlestick getLastCandle(){
-        if (candleList.size() < 1){
-            log.debug("List is empty!");
-            return null;
-        }
-        return candleList.get(candleList.size()-1);
     }
 
     public static double gain(final double before, final double after){

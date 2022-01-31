@@ -212,10 +212,9 @@ public class BpConnectivity {
         botLogic.setCandleList(jsonTemplate.parseCandleList(getAllCandles()));
         ws.sendText(
             jsonTemplate.subscriptionToCandles(
-                settings.getFromCurrency().name(),
-                settings.getToCurrency().name(),
-                settings.getTimeGranularity().getPeriod(),
-                settings.getTimeGranularity().getUnit().name()
+                settings.getFromCurrency(),
+                settings.getToCurrency(),
+                settings.getTimeGranularity()
             ),true);
     }
 
@@ -257,11 +256,6 @@ public class BpConnectivity {
             }else {
                 botLogic.setBought(true);
             }
-            log.warn(
-                "BUYING " + botLogic.getBoughtFor() + " " 
-                + settings.getFromCurrency().name() + " at price: " 
-                + botLogic.getBuyingPrice()
-            );
             return;
         }
         if(botLogic.shouldSell()){
@@ -270,11 +264,6 @@ public class BpConnectivity {
             }else {
                 botLogic.setBought(false);
             }
-            log.warn(
-                "SELLING " + botLogic.getBoughtFor() + " " + settings.getFromCurrency().name() 
-                + " at price: " + botLogic.getLastClosing()
-                + "  with gain [%] : " + 100 * botLogic.currentGain()
-            );
             return;
         }
         if (botLogic.isBought()){

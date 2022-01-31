@@ -1,10 +1,5 @@
 package com.botpanda;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.botpanda.components.BotLogic;
 import com.botpanda.components.BotSettings;
 import com.botpanda.components.connection.BpConnectivity;
@@ -13,7 +8,8 @@ import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Currency;
 import com.botpanda.entities.enums.OrderSide;
-
+import com.botpanda.entities.enums.Strategy;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,14 +17,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 @SpringBootTest
 class BotpandaApplicationTests {
 	@Autowired
 	private BpConnectivity con;
-	private static BotLogic bl = new BotLogic();
+	private static final BotLogic bl = new BotLogic();
 	@Autowired
 	private BpJSONtemplates js;
 	private static BotSettings settings;
@@ -37,17 +36,18 @@ class BotpandaApplicationTests {
 	public static void init(){
 		settings = new BotSettings();
 		settings.setMaxCandles(20);
+		settings.setStrategy(Strategy.MACD_RSI_EMA);
 		bl.setSettings(settings);
 		bl.rsi.setRsiLength(8);
 		bl.ema.setEmaLength(5);
-		double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65};
+		double[] blArr = {100, 100, 110,125, 110, 100, 90, 80, 65};
 		for(double c : blArr){
 			bl.addCandle(new BpCandlestick(c));
 		}
 	}
 
 	@Test
-	void parseFromJsonTest() throws InterruptedException {
+	void parseFromJsonTest() {
 		//given
 		settings = new BotSettings();
 		settings.setFromCurrency(Currency.BTC);
@@ -64,7 +64,7 @@ class BotpandaApplicationTests {
 		if(list.size() == bl.getCandleList().size()){
 			assert(list.toString()).equals(bl.getCandleList().toString());
 		}else{
-			assertTrue(bl.getCandleList().size() == settings.getMaxCandles() + 1);
+			assertEquals(bl.getCandleList().size(), settings.getMaxCandles() + 1);
 		}
 	}
 
@@ -77,7 +77,7 @@ class BotpandaApplicationTests {
 		log.info("value = " + value + " and expected = " + expectedvalue);
 		log.info("RS = " + bl.rsi.getLastRs() + " ; avg loss = " + bl.rsi.getLastAvgLoss() + " and avg gain = " + bl.rsi.getLastAvgGain());
 		//then
-		assertTrue(value == expectedvalue);
+		assertEquals(value, expectedvalue);
 	}
 
 	@Test
@@ -85,15 +85,10 @@ class BotpandaApplicationTests {
 		//when
 		bl.ema.setMaxEmaListLength(10);
 		int expectedvalue = 84;
-		Double value =  bl.ema.getLast().doubleValue();
-		//then
-		// double blArr[] = {100, 100, 110,125, 110, 100, 90, 80, 65, 95, 29,46,6,3,54,656,32,455,66,22,33,55,66,33,99};
-		// for(double c : blArr){
-		// 	bl.addCandle(new BpCandlestick(c));
-		// }
+		double value = bl.ema.getLast();
 		log.info("EMA list: " + bl.ema.getEmaList());
 		log.info("EMA = " + value);
-		assertTrue((int)value.doubleValue() == expectedvalue);
+		assertEquals((int) value, expectedvalue);
 	}
 
 	@Test
@@ -102,19 +97,17 @@ class BotpandaApplicationTests {
 		JSONObject json = new JSONObject(jsStr);
 		JSONObject order = json.getJSONObject("order");
 		log.info(json.toString(4));
-		//log.info(order.toString(4));
-		//assert(order.get("instrument_code")).equals("DOGE_EUR");
 		assert(order.get("type")).equals("MARKET");
 		assert(order.get("amount")).equals("43.91234");
 	}
 
 	@Test
 	void simpleAvgTest(){
-		double blArr[] = {100, 110, 120, 110};
-		ArrayList<Double> l = new ArrayList<Double>();
+		double[] blArr = {100, 110, 120, 110};
+		ArrayList<Double> l = new ArrayList<>();
 		for(Double c : blArr){
 			l.add(c);
 		}
-		assertTrue(ExponentialMovingAverage.simpleAverage(l, 3) == 110);
+		assertEquals(110, (double) ExponentialMovingAverage.simpleAverage(l, 3));
 	}
 }

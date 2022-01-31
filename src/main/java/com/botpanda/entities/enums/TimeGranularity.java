@@ -18,8 +18,6 @@ public enum TimeGranularity{
     HOURS1    (TimeUnits.HOURS,   1),
     HOURS4    (TimeUnits.HOURS,   4);
 
-    private final String PERIOD = "period";
-
     @Getter
     @Expose
     @ToString.Include
@@ -58,26 +56,25 @@ public enum TimeGranularity{
         return getSeconds() / 60;
     }
 
-        static class Serializer implements JsonSerializer<TimeGranularity>, JsonDeserializer<TimeGranularity> {
-            final static String UNIT = "unit";
-            final static String PERIOD = "period";
-            @Override
-            public JsonElement serialize(TimeGranularity src, Type typeOfSrc, JsonSerializationContext context) {
-                Gson gson = new Gson();
-                JSONObject result = new JSONObject();
-                result.put(UNIT, src.getUnit().name());
-                result.put(PERIOD, src.getPeriod());
-                return gson.fromJson(result.toString(), JsonElement.class);
-            }
+    static class Serializer implements JsonSerializer<TimeGranularity>, JsonDeserializer<TimeGranularity> {
+        final static String UNIT = "unit";
+        final static String PERIOD = "period";
+        @Override
+        public JsonElement serialize(TimeGranularity src, Type typeOfSrc, JsonSerializationContext context) {
+            Gson gson = new Gson();
+            JSONObject result = new JSONObject();
+            result.put(UNIT, src.getUnit().name());
+            result.put(PERIOD, src.getPeriod());
+            return gson.fromJson(result.toString(), JsonElement.class);
+        }
 
-            @Override
-            public TimeGranularity deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
-                try {
-
-                    return findByValues(json.getAsJsonObject().get(UNIT).getAsString(), json.getAsJsonObject().get(PERIOD).getAsInt());
-                } catch (JsonParseException e) {
-                    return MINUTES1;
-                }
+        @Override
+        public TimeGranularity deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) {
+            try {
+                return findByValues(json.getAsJsonObject().get(UNIT).getAsString(), json.getAsJsonObject().get(PERIOD).getAsInt());
+            } catch (JsonParseException e) {
+                return MINUTES1;
             }
         }
     }
+}

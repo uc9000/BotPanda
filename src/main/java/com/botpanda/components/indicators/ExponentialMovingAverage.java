@@ -11,7 +11,7 @@ public class ExponentialMovingAverage implements Indicator{
     @Getter
     private final ArrayList<Double> emaList = new ArrayList<>();
     @Getter
-    private Double last;
+    private Double last = 0.0;
     @Setter
     private ArrayList<Double> values;
     @Setter @Getter

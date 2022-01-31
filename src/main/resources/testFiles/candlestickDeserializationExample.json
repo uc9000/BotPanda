@@ -1,0 +1,15 @@
+{
+  "instrument_code": "BTC_EUR",
+  "granularity": {
+    "unit": "MINUTES",
+    "period": 5
+  },
+  "high": "3910.12",
+  "low": "3900.12",
+  "open": "3900.12",
+  "close": "3900.12",
+  "volume": "7.7777",
+  "time": "2018-12-03T16:25:11.875Z",
+  "channel_name": "CANDLESTICKS",
+  "type": "CANDLESTICK_SNAPSHOT"
+}

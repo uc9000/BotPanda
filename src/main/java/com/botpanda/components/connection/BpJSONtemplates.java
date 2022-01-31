@@ -37,14 +37,13 @@ public class BpJSONtemplates {
         return output;
     }
 
-    public String subscriptionToCandles(String fromCurrency, String toCurrency, int period, String unit){
-        String instrumentCode = fromCurrency + "_" + toCurrency;
+    public String subscriptionToCandles(Currency fromCurrency, Currency toCurrency, TimeGranularity timeGranularity){
+        String instrumentCode = fromCurrency.name() + "_" + toCurrency.name();
         Subscribe sub = new Subscribe().forCandlesticks()
-                .withProperty(new Property(instrumentCode, TimeGranularity.findByValues(unit, period)))
-                .withProperty(new Property(instrumentCode, TimeGranularity.findByValues(TimeUnits.MINUTES, 1)));
+                .withProperty(new Property(instrumentCode, timeGranularity))
+                .withProperty(new Property(instrumentCode, TimeGranularity.MINUTES1));
         return gson.toJson(sub);
     }
-
 
     public String subscriptionToOrders(){
         JSONObject jo = new JSONObject();

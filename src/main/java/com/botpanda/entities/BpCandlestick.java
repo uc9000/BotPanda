@@ -9,17 +9,17 @@ import java.util.Date;
 
 @Data
 public class BpCandlestick {
-    private String instrument_code;
-    private double high;
-    private double low;
-    private double open;
-    private double close;
-    private double total_amount;
-    private double volume;
-    private Date time;
+    private String instrument_code = "";
+    private double high = 0;
+    private double low = 0;
+    private double open = 0;
+    private double close = 0;
+    private double total_amount = 0;
+    private double volume = 0;
+    private Date time = new Date();
 
     @SerializedName(value="time_granularity", alternate={"granularity"})
-    private TimeGranularity granularity;
+    private TimeGranularity granularity = TimeGranularity.MINUTES5;
 
     public BpCandlestick(double close){
         this.close = close;
