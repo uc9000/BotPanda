@@ -108,16 +108,15 @@ public class BotLogic {
         StringBuilder strategyLogMsg = new StringBuilder();
         strategyLogMsg.append("CL: ").append(String.format("%.5f", candle.getClose()), 0, 7);
         lastClosing = candle.getClose();
-        if(candle.getGranularity().equals(settings.getTimeGranularity())){
-            this.values.add(lastClosing);
-            this.candleList.add(candle);
-        }else{
-            return;
-        }
         this.oneMinValues.add(lastClosing);
         if (oneMinValues.size() > settings.getMaxCandles() + 1){
             this.oneMinValues.remove(0);
         }
+
+        if(!candle.getGranularity().equals(settings.getTimeGranularity())) { return; }
+
+        this.values.add(lastClosing);
+        this.candleList.add(candle);
 
         log.debug("List after adding candle: \n" + this.candleList + "\n Arr size: " + this.candleList.size());
         if(candleList.size() > settings.getMaxCandles() + 1){
