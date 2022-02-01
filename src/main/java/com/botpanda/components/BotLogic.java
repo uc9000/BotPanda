@@ -192,6 +192,8 @@ public class BotLogic {
     }
 
     public void clearAll(){
+        oneMinValues.clear();
+        candleList.clear();
         values .clear();
         rsi    .clear();
         macd   .clear();
