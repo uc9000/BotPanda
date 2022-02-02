@@ -79,10 +79,13 @@ public class MACD implements Indicator{
 
     @Override
     public boolean shouldBuy() {
-        if(signalDuration > 0){
+        if(lastHistogram <= 0.0){
+            return false;
+        }
+        else if(signalDuration > 0){
             return true;
         }
-        if(lastHistogram > 0 && histogram.get(histogram.size() - 2) < 0){
+        else if(lastHistogram > 0 && histogram.get(histogram.size() - 2) < 0){
             signalDuration = maxSignalDuration;
             return true;
         }
@@ -91,10 +94,13 @@ public class MACD implements Indicator{
 
     @Override
     public boolean shouldSell() {
-        if(signalDuration < 0){
+        if(lastHistogram >= 0.0){
+            return false;
+        }
+        else if(signalDuration < 0){
             return true;
         }
-        if(lastHistogram < 0 && histogram.get(histogram.size() - 2) > 0){
+        else if(lastHistogram < 0 && histogram.get(histogram.size() - 2) > 0){
             signalDuration = -maxSignalDuration;
             return true;
         }
