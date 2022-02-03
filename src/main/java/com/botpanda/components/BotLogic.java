@@ -37,6 +37,7 @@ public class BotLogic {
     public final MACD macd = new MACD();
     public final AverageTrueRange atr = new AverageTrueRange();
     public final ChaikinMoneyFlow cmf = new ChaikinMoneyFlow();
+    public final EngulfingPattern engulfing = new EngulfingPattern(candleList);
 
     //Constructors:
     public BotLogic(){

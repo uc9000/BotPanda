@@ -3,23 +3,37 @@ package com.botpanda.components.indicators;
 import com.botpanda.entities.BpCandlestick;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class EngulfingPattern implements Indicator{
     private final ArrayList<BpCandlestick> candleList;
     private int engulfing = 0;
 
-    EngulfingPattern(){
+    public EngulfingPattern(){
         throw new IllegalStateException("!!!candle list must be passed!!!");
     }
 
-    EngulfingPattern(ArrayList<BpCandlestick> candleList){
+    public EngulfingPattern(ArrayList<BpCandlestick> candleList){
         this.candleList = candleList;
     }
 
+    private List<Double> candleToList(BpCandlestick candle){
+        List<Double> list = new ArrayList<>();
+        list.add(candle.getLow());
+        list.add(candle.getClose());
+        list.add(candle.getOpen());
+        list.add(candle.getHigh());
+        Collections.sort(list);
+        return list;
+    }
+
     private boolean engulfingSide(BpCandlestick first, BpCandlestick second){
-        return second.getClose() > first.getClose() && second.getHigh() > first.getHigh()
-                && second.getOpen() < first.getOpen() && second.getLow() < first.getLow()
-                && first.getVolume() > second.getVolume();
+        List<Double> firstSet = candleToList(first),
+                secondSet = candleToList(second);
+
+        return secondSet.get(2) >= firstSet.get(2) && secondSet.get(3) >= firstSet.get(3)
+                && secondSet.get(0) <= firstSet.get(0) && secondSet.get(1) <= firstSet.get(1);
     }
 
     @Override

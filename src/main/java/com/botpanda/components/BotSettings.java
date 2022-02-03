@@ -31,16 +31,16 @@ public class BotSettings {
     //default settings
     public BotSettings(){
         timeGranularity = TimeGranularity.MINUTES5;
-        fromCurrency = Currency.BTC;
+        fromCurrency = Currency.ETH;
         toCurrency = Currency.EUR;
         maxCandles = 60;
         safetyFactor = 2;
         fiatAmountLimit = 100;
         cryptoAmountLimit = 500;
         stopLoss = 0.01;
-        atrStopLoss = 1;
+        atrStopLoss = 2;
         target = 0.02;
-        atrTarget = 2;
+        atrTarget = 4;
         rsiMin = 25;
         rsiMax = 75;
         rsiLength = 15;

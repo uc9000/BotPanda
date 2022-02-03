@@ -16,6 +16,7 @@ public class RiskManagement {
     private BotSettings settings;
     @Setter
     private ArrayList<Double> values;
+    private int hold = 0;
 
 
     public void setReferences(BotSettings settings, ArrayList<Double> values){
@@ -42,5 +43,18 @@ public class RiskManagement {
         { return hardTargetReached() || atrTargetReached(); }
 
     public boolean stopLossReached()
-        { return hardStopLossReached() || atrStopLossReached(); }
+        {
+            if (hardStopLossReached() || atrStopLossReached()){
+                hold++;
+            }else {
+                hold = 0;
+            }
+
+            int maxHold = 2;
+            if(hold >= maxHold){
+                hold = 0;
+                return true;
+            }
+            return false;
+        }
 }

@@ -21,6 +21,8 @@ public class BpCandlestick {
     @SerializedName(value="time_granularity", alternate={"granularity"})
     private TimeGranularity granularity = TimeGranularity.MINUTES5;
 
+    public BpCandlestick(){}
+
     public BpCandlestick(double close){
         this.close = close;
     }

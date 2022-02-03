@@ -4,6 +4,7 @@ import com.botpanda.components.BotLogic;
 import com.botpanda.components.BotSettings;
 import com.botpanda.components.connection.BpConnectivity;
 import com.botpanda.components.connection.BpJSONtemplates;
+import com.botpanda.components.indicators.EngulfingPattern;
 import com.botpanda.components.indicators.ExponentialMovingAverage;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Currency;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @SpringBootTest
@@ -92,16 +94,6 @@ class BotpandaApplicationTests {
 	}
 
 	@Test
-	void orderJsonTest(){
-		String jsStr = js.createOrder(Currency.BTC, Currency.EUR, OrderSide.BUY, 43.9123466446653245);
-		JSONObject json = new JSONObject(jsStr);
-		JSONObject order = json.getJSONObject("order");
-		log.info(json.toString(4));
-		assert(order.get("type")).equals("MARKET");
-		assert(order.get("amount")).equals("43.91234");
-	}
-
-	@Test
 	void simpleAvgTest(){
 		double[] blArr = {100, 110, 120, 110};
 		ArrayList<Double> l = new ArrayList<>();
@@ -109,5 +101,43 @@ class BotpandaApplicationTests {
 			l.add(c);
 		}
 		assertEquals(110, (double) ExponentialMovingAverage.simpleAverage(l, 3));
+	}
+
+	@Test
+	void engulfingPatternTest(){
+		ArrayList<BpCandlestick> candles = new ArrayList<>();
+		BpCandlestick small, big;
+		small = new BpCandlestick();
+		small.setClose(3);
+		small.setHigh(5);
+		small.setOpen(4);
+		small.setLow(3);
+		small.setVolume(100);
+
+		big = new BpCandlestick();
+		big.setClose(5);
+		big.setHigh(6);
+		big.setOpen(3);
+		big.setLow(2);
+		big.setVolume(200);
+
+		candles.add(small);
+		candles.add(big);
+
+		EngulfingPattern engulf = new EngulfingPattern(candles);
+		engulf.calc();
+
+		assertTrue(engulf.shouldBuy());
+
+		small.setVolume(250);
+		small.setOpen(5);
+		small.setClose(3);
+		small.setLow(3);
+		small.setHigh(5);
+		candles.add(small);
+
+		engulf.calc();
+		assertTrue(engulf.shouldSell());
+
 	}
 }

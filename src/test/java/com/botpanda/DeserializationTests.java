@@ -3,6 +3,7 @@ package com.botpanda;
 import com.botpanda.components.connection.BpJSONtemplates;
 import com.botpanda.entities.BpCandlestick;
 import com.botpanda.entities.enums.Currency;
+import com.botpanda.entities.enums.OrderSide;
 import com.botpanda.entities.enums.TimeGranularity;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -22,6 +23,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 public class DeserializationTests {
     private final BpJSONtemplates js = new BpJSONtemplates();
+
+    @Test
+    void orderJsonTest(){
+        String jsStr = js.createOrder(Currency.BTC, Currency.EUR, OrderSide.BUY, 43.9123466446653245);
+        JSONObject json = new JSONObject(jsStr);
+        JSONObject order = json.getJSONObject("order");
+        log.info(json.toString(4));
+        assert(order.get("type")).equals("MARKET");
+        assert(order.get("amount")).equals("43.91234");
+    }
 
     @Test
     void serializeSubscriptionToCandlesticksChannelTest(){
