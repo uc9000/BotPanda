@@ -64,7 +64,7 @@ public class BotLogic {
     }
 
     public boolean shouldBuy(){
-        if (bought){ return false; }
+        if (bought || riskManagement.isLock()){ return false; }
         if(settings.getStrategy().equals(Strategy.RSI_AND_EMA) && !rsi.shouldBuy())
             { return false; }
         if(settings.getStrategy().isUsingEma() && !ema.shouldBuy())  { return false; }
@@ -85,11 +85,12 @@ public class BotLogic {
     }
 
     public boolean shouldSell(){
+        if(!bought || riskManagement.isLock()){ return false; }
+
         final String logMsg = "SELLING " + getBoughtFor() + " " + settings.getFromCurrency().name()
                         + " at price: " + getLastClosing()
                         + "  with gain [%] : " + 100 * currentGain();
 
-        if(!bought){ return false; }
         if(riskManagement.targetReached() || riskManagement.stopLossReached()){
             sellingPrice = lastClosing;
             log.warn(logMsg);
@@ -125,6 +126,7 @@ public class BotLogic {
 
         if(!candle.getGranularity().equals(settings.getTimeGranularity())) { return; }
 
+        riskManagement.setLock(false);
         this.values.add(lastClosing);
         this.candleList.add(candle);
 
