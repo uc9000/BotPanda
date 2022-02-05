@@ -106,6 +106,7 @@ public class BotLogic {
         }
         riskManagement.setEntryPrice(0.0);
         riskManagement.setEntryAtr(0.0);
+        riskManagement.setLock(true);
         sellingPrice = lastClosing;
         log.warn(logMsg);
         return true;
